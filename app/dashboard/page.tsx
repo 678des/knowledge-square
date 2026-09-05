@@ -1,22 +1,9 @@
-"use client";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 //import { categories, getChatsByCategory } from "./_lib/mock-data";
 import { getSubjects } from "@/lib/supabase/subjects";
-import { useEffect, useState } from "react";
-import type { Category } from "@/lib/types";
-export default function DashboardHomePage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const categories = await getSubjects();
-      console.log("Fetched categories:", categories);
-      setCategories(categories);
-    };
-
-    fetchCategories();
-  }, []);
+export default async function DashboardHomePage() {
+  const subjects = await getSubjects();
 
   return (
     <div className="mx-auto h-full max-w-3xl overflow-y-auto px-4 py-10">
@@ -38,20 +25,20 @@ export default function DashboardHomePage() {
       </Link>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {categories.map((category) => {
+        {subjects.map((sub) => {
           return (
             <div
-              key={category.id}
+              key={sub.id}
               className="rounded-xl border border-[#2E323B] bg-[#1C1F25] p-4"
-              style={{ borderTopColor: category.color, borderTopWidth: 2 }}
+              style={{ borderTopColor: sub.color, borderTopWidth: 2 }}
             >
               <div className="mb-3 flex items-center gap-2">
                 <Link
-                  href={"dashboard/c/" + category.id}
+                  href={"dashboard/c/" + sub.id}
                   className="flex items-center gap-2"
                 >
                   <span className="text-sm font-medium text-[#E7E8EA]">
-                    {category.name}
+                    {sub.name}
                   </span>
                 </Link>
               </div>

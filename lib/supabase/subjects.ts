@@ -1,8 +1,8 @@
-import { createClient } from "@/lib/supabase/client"; // または環境に応じた Client 作成処理
-import { Category } from "@/lib/types";
+import { createClient } from "@/lib/supabase/server"; // または環境に応じた Client 作成処理
+import { Subject } from "@/lib/types";
 
-export async function getSubjects(): Promise<Category[]> {
-  const supabase = createClient();
+export async function getSubjects(): Promise<Subject[]> {
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -25,5 +25,5 @@ export async function getSubjects(): Promise<Category[]> {
   }
 
   console.log("取得したカテゴリ:", data, "ユーザー", user.id);
-  return data as Category[];
+  return data as Subject[];
 }
