@@ -12,7 +12,7 @@ type Props = {
   subjects: Subject[]; // ⭕️ 親から渡されたデータを受け取る
 };
 import { getSubjects } from "@/lib/supabase/queries/subjects";
-import { h1 } from "framer-motion/client";
+import { div, h1, sub } from "framer-motion/client";
 export default function Sidebar({ open, onClose, subjects }: Props) {
   function handleDelete(e: MouseEvent, chatId: string) {
     e.preventDefault();
@@ -49,7 +49,14 @@ export default function Sidebar({ open, onClose, subjects }: Props) {
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
           {subjects.map((subject) => (
-            <h1 key={subject.id}>{subject.name}</h1>
+            <Link
+              key={subject.id}
+              href={"/dashboard/c/" + subject.id}
+              onClick={onClose}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#3FB6A8]/40 bg-[#3FB6A8]/10 px-4 py-2.5 text-sm font-medium text-[#7ED6C9] transition-colors hover:bg-[#3FB6A8]/20"
+            >
+              {subject.name}
+            </Link>
           ))}
         </nav>
       </aside>
