@@ -1,35 +1,19 @@
-'use client'
+// app/dashboard/layout.tsx
+import { getSubjects } from "@/lib/supabase/queries/subjects";
+import DashboardClientLayout from "./_components/DashboardClientLayout";
 
-import { useMemo, useState, type ReactNode } from 'react'
-import { usePathname } from 'next/navigation'
-import Header from './_components/Header'
-import Sidebar from './_components/Sidebar'
-import { getCategory, getChat } from './_lib/mock-data'
-import { inter } from './_lib/fonts'
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // 1. サーバー側で DB データを取得
+  const subjects = (await getSubjects()) ?? [];
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false) // 【重要】初期状態は閉じておく(フォーカスモード)
-  const pathname = usePathname()
-
-  const activeChatId = useMemo(() => {
-    const match = pathname.match(/^\/dashboard\/c\/([^/]+)/)
-    return match?.[1]
-  }, [pathname])
-
-  const activeChat = activeChatId ? getChat(activeChatId) : undefined
-  const activeCategory = getCategory(activeChat?.categoryId)
-
+  // 2. Client 用のレイアウトに丸ごと渡す
   return (
-    <div className={`${inter.className} flex h-screen flex-col overflow-hidden bg-[#15171B] text-[#E7E8EA]`}>
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} activeChatId={activeChatId} />
-
-      <Header
-        onMenuClick={() => setSidebarOpen((v) => !v)}
-        category={activeCategory}
-        chatTitle={activeChat?.title}
-      />
-
-      <main className="min-h-0 flex-1">{children}</main>
-    </div>
-  )
+    <DashboardClientLayout subjects={subjects}>
+      {children}
+    </DashboardClientLayout>
+  );
 }

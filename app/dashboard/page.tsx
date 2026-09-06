@@ -1,3 +1,4 @@
+"use server";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 //import { categories, getChatsByCategory } from "./_lib/mock-data";
@@ -28,12 +29,12 @@ export default async function DashboardHomePage() {
         {subjects.map((sub) => {
           return (
             <div
-              key={sub.id}
               className="rounded-xl border border-[#2E323B] bg-[#1C1F25] p-4"
               style={{ borderTopColor: sub.color, borderTopWidth: 2 }}
             >
               <div className="mb-3 flex items-center gap-2">
                 <Link
+                  key={sub.id}
                   href={"dashboard/c/" + sub.id}
                   className="flex items-center gap-2"
                 >

@@ -3,27 +3,20 @@
 import Link from "next/link";
 import { useState, type MouseEvent } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import {
-  categories,
-  chats as initialChats,
-  type ChatItem,
-} from "../_lib/mock-data";
 
-export default function Sidebar({
-  open,
-  onClose,
-  activeChatId,
-}: {
+import type { Subject } from "@/lib/types";
+
+type Props = {
   open: boolean;
   onClose: () => void;
-  activeChatId?: string;
-}) {
-  const [chatList, setChatList] = useState<ChatItem[]>(initialChats);
-
+  subjects: Subject[]; // ⭕️ 親から渡されたデータを受け取る
+};
+import { getSubjects } from "@/lib/supabase/queries/subjects";
+import { h1 } from "framer-motion/client";
+export default function Sidebar({ open, onClose, subjects }: Props) {
   function handleDelete(e: MouseEvent, chatId: string) {
     e.preventDefault();
     e.stopPropagation();
-    setChatList((prev) => prev.filter((c) => c.id !== chatId));
   }
 
   return (
@@ -55,62 +48,9 @@ export default function Sidebar({
         </div>
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
-          {categories.map((category) => {
-            const categoryChats = chatList.filter(
-              (c) => c.categoryId === category.id,
-            );
-            if (categoryChats.length === 0) return null;
-            //const Icon = category.icon
-
-            return (
-              <div key={category.id}>
-                <div className="mb-1.5 flex items-center gap-2 px-2">
-                  {/* <Icon size={14} style={{ color: category.color }} /> */}
-                  <span className="text-xs font-medium text-[#98A0AC]">
-                    {category.name}
-                  </span>
-                </div>
-                <ul className="space-y-0.5">
-                  {categoryChats.map((chat) => {
-                    const isActive = chat.id === activeChatId;
-                    return (
-                      <li key={chat.id}>
-                        <Link
-                          href={`/dashboard/c/${chat.id}`}
-                          onClick={onClose}
-                          className={`group flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition-colors ${
-                            isActive
-                              ? "bg-[#262A31] text-[#E7E8EA]"
-                              : "text-[#B4BAC4] hover:bg-[#262A31]/70"
-                          }`}
-                        >
-                          <span
-                            className="h-1.5 w-1.5 shrink-0 rounded-full"
-                            style={{ backgroundColor: category.color }}
-                          />
-                          <span className="min-w-0 flex-1 truncate">
-                            {chat.title}
-                          </span>
-                          {chat.status && (
-                            <span className="shrink-0 rounded-full bg-[#D9A857]/15 px-1.5 py-0.5 text-[10px] font-medium text-[#D9A857]">
-                              {chat.status}
-                            </span>
-                          )}
-                          <button
-                            onClick={(e) => handleDelete(e, chat.id)}
-                            aria-label="このチャットを削除"
-                            className="shrink-0 rounded p-1 text-[#6B7280] opacity-0 transition-opacity hover:bg-black/20 hover:text-red-400 group-hover:opacity-100"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            );
-          })}
+          {subjects.map((subject) => (
+            <h1 key={subject.id}>{subject.name}</h1>
+          ))}
         </nav>
       </aside>
     </>
