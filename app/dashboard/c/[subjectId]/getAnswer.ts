@@ -19,13 +19,42 @@ export async function SendMessage(subjectId: string, userMessage: string) {
     throw new Error("認証されていないユーザーです");
   }
 
+  const { data: note } = await supabase
+    .from("study_notes")
+    .select("all_chat_log")
+    .eq("user_id", user.id)
+    .eq("subject_id", subjectId)
+    .single();
+
+  let currentLogs: Message[] = [];
+  const allChatLog = (note as unknown as { all_chat_log?: unknown } | null)
+    ?.all_chat_log;
+  if (allChatLog) {
+    currentLogs =
+      typeof allChatLog === "string"
+        ? JSON.parse(allChatLog)
+        : (allChatLog as Message[]);
+  }
+
+  const userMsgObj: Message = {
+    id: crypto.randomUUID(),
+    role: "user",
+    content: userMessage,
+  };
+  const logsWithUser = [...currentLogs, userMsgObj];
+
+  const geminiContents = logsWithUser.map((msg) => ({
+    role: msg.role === "assistant" ? "model" : "user",
+    parts: [{ text: msg.content }],
+  }));
+
   // 2. Gemini API の初期化
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   // 3. AI 応答の生成
   const response = await ai.models.generateContent({
     model: "gemini-3.6-flash",
-    contents: userMessage,
+    contents: geminiContents,
     config: {
       systemInstruction: "事実ベースで論理的に回答してください",
       temperature: 0.7,
@@ -34,26 +63,9 @@ export async function SendMessage(subjectId: string, userMessage: string) {
 
   const aiAnswer = response.text || "";
 
-  // 4. 既存のノートとログを取得
-  const { data: note } = await supabase
-    .from("study_notes")
-    .select("all_chat_log")
-    .eq("user_id", user.id)
-    .eq("subject_id", subjectId)
-    .single();
-
-  // JSON文字列の場合はパースして配列化
-  let currentLogs: Message[] = [];
-  // if (note?.all_chat_log) {
-  //   currentLogs = typeof note.all_chat_log === "string"
-  //     ? JSON.parse(note.all_chat_log)
-  //     : note.all_chat_log;
-  // }
-
   // 新しいメッセージ（ユーザー & AI）を追加
-  const updatedLogs = [
-    ...currentLogs,
-    { id: crypto.randomUUID(), role: "user", content: userMessage },
+  const finalLogs: Message[] = [
+    ...logsWithUser,
     { id: crypto.randomUUID(), role: "assistant", content: aiAnswer },
   ];
 
@@ -64,7 +76,7 @@ export async function SendMessage(subjectId: string, userMessage: string) {
       {
         user_id: user.id,
         subject_id: subjectId,
-        all_chat_log: updatedLogs, // カラム名: 保存する値
+        all_chat_log: finalLogs, // カラム名: 保存する値
         //all_chat_log: "test",
       } as never,
       {
@@ -81,5 +93,5 @@ export async function SendMessage(subjectId: string, userMessage: string) {
 
   // 6. 画面（Server Component）の表示を最新化
   revalidatePath(`/dashboard/c/${subjectId}`);
-  return aiAnswer;
+  return response.text;
 }
