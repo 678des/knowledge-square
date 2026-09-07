@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 //import { categories, getChatsByCategory } from "./_lib/mock-data";
+import NewSubjectModal from "./_components/NewSubjectModal";
 import { getSubjects } from "@/lib/supabase/queries/subjects";
 export default async function DashboardHomePage() {
   const subjects = await getSubjects();
@@ -17,18 +18,12 @@ export default async function DashboardHomePage() {
         </p>
       </div>
 
-      <Link
-        href="/dashboard/c/new"
-        className="mb-8 flex items-center justify-center gap-2 rounded-xl border border-[#3FB6A8]/40 bg-[#3FB6A8]/10 px-4 py-3 text-sm font-medium text-[#7ED6C9] transition-colors hover:bg-[#3FB6A8]/20"
-      >
-        <Plus size={16} />
-        新しい学習をはじめる
-      </Link>
-
+      <NewSubjectModal></NewSubjectModal>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {subjects.map((sub) => {
           return (
             <div
+              key={sub.id}
               className="rounded-xl border border-[#2E323B] bg-[#1C1F25] p-4"
               style={{ borderTopColor: sub.color, borderTopWidth: 2 }}
             >

@@ -49,7 +49,7 @@ export async function SendMessage(subjectId: string, userMessage: string) {
   }));
 
   // 2. Gemini API の初期化
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   // 3. AI 応答の生成
   const response = await ai.models.generateContent({
@@ -70,7 +70,7 @@ export async function SendMessage(subjectId: string, userMessage: string) {
   ];
 
   // 2. DB に保存 (UPDATE)
-  const { error } = await supabase
+  let { error } = await supabase
     .from("study_notes")
     .upsert(
       {
@@ -90,6 +90,33 @@ export async function SendMessage(subjectId: string, userMessage: string) {
     console.error("DB更新エラー:", error.message);
     throw new Error(`チャットログの保存に失敗しました${error.message}`);
   }
+
+  //--AIの要約を作る--
+  //もし10回を超えたら自動で要約(今は毎回)
+  ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const aisummary = await ai.models.generateContent({
+    model: "gemini-3.6-flash",
+    contents: geminiContents,
+    config: {
+      systemInstruction:
+        "今までの内容を要約し、新しいチャットで続けられるプロンプトを生成してください。ただし、ユーザーの目標を到達するために、関係のあるものだけを要約の対象に入れてください。",
+      temperature: 0.7,
+    },
+  });
+  await supabase
+    .from("study_notes")
+    .upsert(
+      {
+        user_id: user.id,
+        subject_id: subjectId,
+        ai_summary: aisummary.text,
+      } as never,
+      {
+        onConflict: "user_id,subject_id",
+      },
+    )
+    .eq("user_id", user.id)
+    .eq("subject_id", subjectId);
 
   // 6. 画面（Server Component）の表示を最新化
   revalidatePath(`/dashboard/c/${subjectId}`);
