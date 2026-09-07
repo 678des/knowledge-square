@@ -1,6 +1,7 @@
 import { getNote } from "@/lib/supabase/queries/notes";
 import ChatFrom from "./_components/ChatForm";
 import StudyNoteArea from "./_components/StudyNoteArea";
+import AISummary from "./_components/AISummaryArea";
 export default async function ChatPage({
   params,
 }: {
@@ -57,19 +58,7 @@ export default async function ChatPage({
           subjectId={subjectId}
           initialNote={note?.study_note || ""}
         />
-
-        <div>
-          <h2 className="text-sm font-semibold text-slate-400 mb-2">
-            🤖 AI要約
-          </h2>
-          <div className="rounded-md bg-slate-950 border border-slate-800 p-3 text-sm text-slate-300 min-h-[100px]">
-            {note?.ai_summary || (
-              <span className="text-slate-500 italic">
-                要約はまだありません
-              </span>
-            )}
-          </div>
-        </div>
+        <AISummary initialAISummary={note?.ai_summary || ""} />
       </aside>
     </div>
   );
