@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type MouseEvent } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import NewSubjectModal from "./NewSubjectModal";
 
 import type { Subject } from "@/lib/types";
 
@@ -36,17 +37,10 @@ export default function Sidebar({ open, onClose, subjects }: Props) {
         }`}
         aria-label="学習履歴サイドバー"
       >
-        <div className="p-4">
-          <Link
-            href="/dashboard/c/new"
-            onClick={onClose}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#3FB6A8]/40 bg-[#3FB6A8]/10 px-4 py-2.5 text-sm font-medium text-[#7ED6C9] transition-colors hover:bg-[#3FB6A8]/20"
-          >
-            <Plus size={16} />
-            新しい学習をはじめる
-          </Link>
+        <div className="mt-4 px-4">
+          <NewSubjectModal />
         </div>
-
+        <hr className="mb-6 border-slate-700" />
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
           {subjects.map((subject) => (
             <Link
