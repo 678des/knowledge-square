@@ -22,6 +22,7 @@ export async function SendMessage(subjectId: string, userMessage: string) {
   const { data: note } = await supabase
     .from("study_notes")
     .select("all_chat_log")
+    .select("subject_name")
     .eq("user_id", user.id)
     .eq("subject_id", subjectId)
     .single();
@@ -35,6 +36,8 @@ export async function SendMessage(subjectId: string, userMessage: string) {
         ? JSON.parse(allChatLog)
         : (allChatLog as Message[]);
   }
+  const subject_name = (note as unknown as { subject_name?: unknown } | null)
+    ?.subject_name;
 
   const userMsgObj: Message = {
     id: crypto.randomUUID(),
@@ -56,7 +59,11 @@ export async function SendMessage(subjectId: string, userMessage: string) {
     model: "gemini-3.6-flash",
     contents: geminiContents,
     config: {
-      systemInstruction: "事実ベースで論理的に回答してください",
+      systemInstruction:
+        `あなたは学習アシスタントです。ユーザーの質問にわかりやすく答えてください。
+        【現在の学習コンテキスト】
+        ・科目名/ノートタイトル: "${subject_name}" 
+        ※タイトルが「無題」や抽象的な場合は、ユーザーの質問内容（本文）の文脈を最優先してください。`.trim(),
       temperature: 0.7,
     },
   });
