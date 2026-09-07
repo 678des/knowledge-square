@@ -1,13 +1,21 @@
 // app/dashboard/_components/DashboardClientLayout.tsx
 "use client";
-
+import { Inter, Lora } from "next/font/google";
 import { useMemo, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import { getCategory, getChat } from "../_lib/mock-data";
-import { inter } from "../_lib/fonts";
 import type { Subject } from "@/lib/types";
+
+export const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
+export const lora = Lora({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
 
 export default function DashboardClientLayout({
   children,
@@ -24,9 +32,6 @@ export default function DashboardClientLayout({
     return match?.[1];
   }, [pathname]);
 
-  const activeChat = activeChatId ? getChat(activeChatId) : undefined;
-  const activeCategory = getCategory(activeChat?.categoryId);
-
   return (
     <div
       className={`${inter.className} flex h-screen flex-col overflow-hidden bg-[#15171B] text-[#E7E8EA]`}
@@ -39,8 +44,8 @@ export default function DashboardClientLayout({
 
       <Header
         onMenuClick={() => setSidebarOpen((v) => !v)}
-        category={activeCategory}
-        chatTitle={activeChat?.title}
+        // category={activeCategory}
+        // chatTitle={activeChat?.title}
       />
 
       <main className="min-h-0 flex-1">{children}</main>
