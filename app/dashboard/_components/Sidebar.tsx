@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type MouseEvent } from "react";
-import { Plus, Trash2 } from "lucide-react";
 import NewSubjectModal from "./NewSubjectModal";
 
 import type { Subject } from "@/lib/types";
@@ -12,14 +10,7 @@ type Props = {
   onClose: () => void;
   subjects: Subject[]; // ⭕️ 親から渡されたデータを受け取る
 };
-import { getSubjects } from "@/lib/supabase/queries/subjects";
-import { div, h1, sub } from "framer-motion/client";
 export default function Sidebar({ open, onClose, subjects }: Props) {
-  function handleDelete(e: MouseEvent, chatId: string) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
   return (
     <>
       {/* オーバーレイ: サイドバーが開いている間だけ表示し、クリックで閉じる */}

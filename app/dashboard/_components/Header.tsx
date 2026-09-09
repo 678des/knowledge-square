@@ -1,17 +1,9 @@
-'use client'
+"use client";
 
-import { Menu } from 'lucide-react'
-import type { Category } from '../_lib/mock-data'
+import { Menu } from "lucide-react";
+//import type { Category } from '../_lib/mock-data'
 
-export default function Header({
-  onMenuClick,
-  category,
-  chatTitle,
-}: {
-  onMenuClick: () => void
-  category?: Category
-  chatTitle?: string
-}) {
+export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[#2E323B] bg-[#15171B]/95 px-4 backdrop-blur">
       <button
@@ -22,7 +14,7 @@ export default function Header({
         <Menu size={20} />
       </button>
 
-      {category ? (
+      {/* {category ? (
         <div className="flex min-w-0 items-center gap-2">
           <span
             className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
@@ -37,7 +29,7 @@ export default function Header({
         </div>
       ) : (
         <span className="text-sm font-medium text-[#E7E8EA]">学修アシスタント</span>
-      )}
+      )} */}
     </header>
-  )
+  );
 }

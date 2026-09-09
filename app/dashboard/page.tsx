@@ -1,7 +1,5 @@
 "use server";
 import Link from "next/link";
-import { Plus } from "lucide-react";
-//import { categories, getChatsByCategory } from "./_lib/mock-data";
 import NewSubjectModal from "./_components/NewSubjectModal";
 import { getSubjects } from "@/lib/supabase/queries/subjects";
 export default async function DashboardHomePage() {

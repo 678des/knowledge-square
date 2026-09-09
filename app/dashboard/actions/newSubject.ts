@@ -1,8 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { randomUUID } from "crypto";
-import { color } from "framer-motion";
 import { redirect } from "next/navigation";
 
 export async function createSubjectAction(subjectName: string) {

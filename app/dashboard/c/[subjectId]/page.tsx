@@ -44,16 +44,6 @@ export default async function ChatPage({
 
       {/* 右側：学習メモ ＆ AI要約パネル */}
       <aside className="w-80 flex flex-col gap-6 p-6 bg-slate-900/40">
-        {/* <div>
-          <h2 className="text-sm font-semibold text-slate-400 mb-2">
-            ✍️ 学習メモ
-          </h2>
-          <textarea
-            defaultValue={note?.study_note || ""}
-            placeholder="ここに復習メモを入力..."
-            className="w-full h-44 rounded-md bg-slate-950 border border-slate-800 p-3 text-sm text-slate-200 resize-none focus:outline-none"
-          />
-        </div> */}
         <StudyNoteArea
           subjectId={subjectId}
           initialNote={note?.study_note || ""}

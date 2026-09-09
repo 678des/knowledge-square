@@ -1,11 +1,11 @@
 // app/dashboard/_components/DashboardClientLayout.tsx
 "use client";
 import { Inter, Lora } from "next/font/google";
-import { useMemo, useState, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
-import Header from "./Header";
+import { useState, type ReactNode } from "react";
+
 import Sidebar from "./Sidebar";
 import type { Subject } from "@/lib/types";
+import Header from "./Header";
 
 export const inter = Inter({
   subsets: ["latin"],
@@ -25,12 +25,6 @@ export default function DashboardClientLayout({
   subjects: Subject[];
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const pathname = usePathname();
-
-  const activeChatId = useMemo(() => {
-    const match = pathname.match(/^\/dashboard\/c\/([^/]+)/);
-    return match?.[1];
-  }, [pathname]);
 
   return (
     <div
@@ -42,11 +36,7 @@ export default function DashboardClientLayout({
         subjects={subjects}
       />
 
-      <Header
-        onMenuClick={() => setSidebarOpen((v) => !v)}
-        // category={activeCategory}
-        // chatTitle={activeChat?.title}
-      />
+      <Header onMenuClick={() => setSidebarOpen((v) => !v)} />
 
       <main className="min-h-0 flex-1">{children}</main>
     </div>

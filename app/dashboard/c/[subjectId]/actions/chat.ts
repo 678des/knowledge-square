@@ -113,7 +113,7 @@ export async function SendMessage(subjectId: string, userMessage: string) {
     updateData.ai_summary = aisummary.text;
   }
 
-  let { error } = await supabase
+  const { error } = await supabase
     .from("study_notes")
     .upsert(updateData as never, {
       onConflict: "user_id,subject_id",

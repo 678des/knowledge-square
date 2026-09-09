@@ -13,7 +13,7 @@ export async function updateStudyNote(subjectId: string, noteText: string) {
     user_id: user.id,
     subject_id: subjectId,
     study_note: noteText,
-  } as any;
+  } as never;
 
   const { error } = await supabase
     .from("study_notes")
