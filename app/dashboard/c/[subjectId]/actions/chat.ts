@@ -70,7 +70,7 @@ export async function SendMessage(subjectId: string, userMessage: string) {
   const aiAnswer = response.text || "";
 
   // 新しいメッセージ（ユーザー & AI）を追加
-  const finalLogs: Message[] = [
+  let finalLogs: Message[] = [
     ...logsWithUser,
     { id: crypto.randomUUID(), role: "assistant", content: aiAnswer },
   ];
@@ -79,6 +79,15 @@ export async function SendMessage(subjectId: string, userMessage: string) {
   //もし10回を超えたら自動で要約(今は毎回)
   let aisummary;
   if (finalLogs.length > 10) {
+    //会話がAIで終わるのを防ぐため
+    finalLogs = [
+      ...logsWithUser,
+      {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: "今までの内容を要約してください",
+      },
+    ];
     ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     aisummary = await ai.models.generateContent({
       model: "gemini-3.5-flash-lite",
