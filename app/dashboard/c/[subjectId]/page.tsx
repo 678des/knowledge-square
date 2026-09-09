@@ -2,43 +2,20 @@ import { getNote } from "@/lib/supabase/queries/notes";
 import ChatFrom from "./_components/ChatForm";
 import StudyNoteArea from "./_components/StudyNoteArea";
 import AISummary from "./_components/AISummaryArea";
+import ChatLogs from "./_components/ChatLogArea";
+
 export default async function ChatPage({
   params,
 }: {
   params: Promise<{ subjectId: string }>;
 }) {
   const { subjectId } = await params;
-  console.log("ChatPage: subjectId =", subjectId);
   const note = await getNote(subjectId);
-  console.log("ChatPage: note =", note);
   return (
     <div className="flex h-full w-full overflow-hidden bg-slate-950 text-slate-100">
       {/* メイン：チャットエリア */}
       <main className="flex flex-1 flex-col justify-between border-r border-slate-800 p-6">
-        <div className="flex-1 overflow-y-auto space-y-4">
-          <h1 className="text-xl font-bold text-slate-200">
-            チャット＆学習エリア
-          </h1>
-
-          {/* チャットログの表示 */}
-          {note?.all_chat_log && note.all_chat_log.length > 0 ? (
-            note.all_chat_log.map((msg, index) => (
-              <div
-                key={msg.id || index}
-                className={`max-w-[80%] rounded-lg p-3 text-sm ${
-                  msg.role === "user"
-                    ? "ml-auto bg-blue-600 text-white"
-                    : "mr-auto bg-slate-800 text-slate-200 border border-slate-700"
-                }`}
-              >
-                {msg.content}
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-slate-500">まだ対話ログがありません。</p>
-          )}
-        </div>
-
+        {note && <ChatLogs logs={note} />}
         <ChatFrom subjectId={subjectId} />
       </main>
 

@@ -1,10 +1,7 @@
-// app/dashboard/c/[subjectId]/_components/StudyNoteArea.tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useDebounce } from "use-debounce";
-
-//import { updateStudyNote } from "@/lib/supabase/queries/notes";
 import { updateStudyNote } from "@/app/dashboard/c/[subjectId]/actions/note";
 export default function StudyNoteArea({
   subjectId,
@@ -39,7 +36,7 @@ export default function StudyNoteArea({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-2">
+      <div className="overflow-y-auto flex justify-between items-center mb-2">
         <h2 className="text-sm font-semibold text-slate-400">✍️ 学習メモ</h2>
         <span className="text-xs text-slate-500">
           {isSaving ? "保存中..." : "自動保存"}
