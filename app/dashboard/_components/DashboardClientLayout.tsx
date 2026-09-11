@@ -5,7 +5,7 @@ import { useState, type ReactNode } from "react";
 
 import Sidebar from "./Sidebar";
 import type { Subject } from "@/lib/types";
-import Header from "./Header";
+import Header from "../../_components/Header";
 
 export const inter = Inter({
   subsets: ["latin"],
