@@ -28,7 +28,7 @@ export default async function DashboardHomePage() {
               <div className="mb-3 flex items-center gap-2">
                 <Link
                   key={sub.id}
-                  href={"dashboard/c/" + sub.id}
+                  href={"subjects/c/" + sub.id}
                   className="flex items-center gap-2"
                 >
                   <span className="text-sm font-medium text-[#E7E8EA]">

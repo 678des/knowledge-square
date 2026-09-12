@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useDebounce } from "use-debounce";
-import { updateStudyNote } from "@/app/dashboard/c/[subjectId]/actions/note";
+import { updateStudyNote } from "@/app/subjects/c/[subjectId]/actions/note";
 export default function StudyNoteArea({
   subjectId,
   initialNote,

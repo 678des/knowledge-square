@@ -28,5 +28,5 @@ export async function createSubjectAction(subjectName: string) {
   }
 
   // 作成したページの URL へリダイレクト
-  redirect(`/dashboard`);
+  redirect(`/subjects`);
 }

@@ -36,7 +36,7 @@ export default function Sidebar({ open, onClose, subjects }: Props) {
           {subjects.map((subject) => (
             <Link
               key={subject.id}
-              href={"/dashboard/c/" + subject.id}
+              href={"/subjects/c/" + subject.id}
               onClick={onClose}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#3FB6A8]/40 bg-[#3FB6A8]/10 px-4 py-2.5 text-sm font-medium text-[#7ED6C9] transition-colors hover:bg-[#3FB6A8]/20"
             >
