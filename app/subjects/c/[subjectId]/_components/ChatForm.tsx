@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SendMessage } from "@/app/dashboard/c/[subjectId]/actions/chat";
+import { SendMessage } from "@/app/subjects/c/[subjectId]/actions/chat";
 export default function ChatForm({ subjectId }: { subjectId: string }) {
   async function handleMessageSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -1,11 +1,11 @@
-// app/dashboard/_components/DashboardClientLayout.tsx
 "use client";
+
 import { Inter, Lora } from "next/font/google";
 import { useState, type ReactNode } from "react";
-
 import Sidebar from "./Sidebar";
 import type { Subject } from "@/lib/types";
 import Header from "./Header";
+//import type { User } from "@supabase/supabase-js"; // 型のインポート
 
 export const inter = Inter({
   subsets: ["latin"],
@@ -20,10 +20,15 @@ export const lora = Lora({
 export default function DashboardClientLayout({
   children,
   subjects,
+  //user,
 }: {
   children: ReactNode;
   subjects: Subject[];
+  //user: User;
 }) {
+  // const supabase = await createClient();
+  //   const { data: { user }, error } = await supabase.auth.getUser();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
