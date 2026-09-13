@@ -6,7 +6,7 @@ import { Note } from "@/lib/types";
 export default async function ChatLogs({ logs }: { logs: Note }) {
   return (
     <div className="flex h-full w-full overflow-hidden bg-slate-950 text-slate-100">
-      <div className="flex-1 overflow-y-auto space-y-4">
+      <div className="flex-col overflow-y-auto space-y-4">
         <h1 className="text-xl font-bold text-slate-200">
           チャット＆学習エリア
         </h1>

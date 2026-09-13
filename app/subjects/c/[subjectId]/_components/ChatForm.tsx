@@ -8,8 +8,7 @@ export default function ChatForm({ subjectId }: { subjectId: string }) {
     const formData = new FormData(event.currentTarget);
     const message = formData.get("message") as string;
     console.log("送信されたメッセージ:", message, "subjectId:", subjectId);
-    // ここで Server Action や API 経由で Supabase 保存処理を呼び出す
-    await SendMessage(subjectId, message); // Server Action を呼び出す
+    await SendMessage(subjectId, message);
   }
 
   return (

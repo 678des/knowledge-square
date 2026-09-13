@@ -12,9 +12,9 @@ export default async function ChatPage({
   const { subjectId } = await params;
   const note = await getNote(subjectId);
   return (
-    <div className="flex h-full w-full overflow-hidden bg-slate-950 text-slate-100">
+    <div className="flex h-full overflow-hidden bg-slate-950 text-slate-100">
       {/* メイン：チャットエリア */}
-      <main className="flex flex-1 flex-col justify-between border-r border-slate-800 p-6">
+      <main className="flex flex-1 min-w-0 flex-col justify-between border-r border-slate-800 p-6">
         {note && <ChatLogs logs={note} />}
         <ChatFrom subjectId={subjectId} />
       </main>
