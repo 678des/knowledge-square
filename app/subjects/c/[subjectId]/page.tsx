@@ -1,9 +1,8 @@
 import { getNote } from "@/lib/supabase/queries/notes";
-import ChatFrom from "./_components/ChatForm";
-import StudyNoteArea from "./_components/StudyNoteArea";
-import AISummary from "./_components/AISummaryArea";
-import ChatLogs from "./_components/ChatLogArea";
 
+import { createClient } from "@/lib/supabase/server";
+import { getSubjects, getSubjectName } from "@/lib/supabase/queries/subjects";
+import { SubjectDetailClient } from "./_components/SubjectDetailClient";
 export default async function ChatPage({
   params,
 }: {
@@ -11,22 +10,19 @@ export default async function ChatPage({
 }) {
   const { subjectId } = await params;
   const note = await getNote(subjectId);
+  const subjectName = await getSubjectName(subjectId);
+  const subjects = await getSubjects();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return (
-    <div className="flex h-full overflow-hidden bg-slate-950 text-slate-100">
-      {/* メイン：チャットエリア */}
-      <main className="flex flex-1 min-w-0 flex-col justify-between border-r border-slate-800 p-6">
-        {note && <ChatLogs logs={note} />}
-        <ChatFrom subjectId={subjectId} />
-      </main>
-
-      {/* 右側：学習メモ ＆ AI要約パネル */}
-      <aside className="w-80 flex flex-col gap-6 p-6 bg-slate-900/40">
-        <StudyNoteArea
-          subjectId={subjectId}
-          initialNote={note?.study_note || ""}
-        />
-        <AISummary initialAISummary={note?.ai_summary || ""} />
-      </aside>
-    </div>
+    <SubjectDetailClient
+      user={user}
+      subjectId={subjectId}
+      initialNote={note}
+      subjects={subjects}
+      subjectName={subjectName}
+    />
   );
 }
