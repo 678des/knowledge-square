@@ -1,19 +1,23 @@
+"use client";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { Note } from "@/lib/types";
+import { Message } from "@/lib/types";
+export default function ChatLogs({ logs: note }: { logs: Note }) {
+  const [chatLog, setChatLog] = useState<Message[]>(note?.all_chat_log || []);
 
-export default async function ChatLogs({ logs }: { logs: Note }) {
   return (
-    <div className="flex h-full w-full overflow-hidden bg-slate-950 text-slate-100">
-      <div className="flex-col overflow-y-auto space-y-4">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-slate-950 text-slate-100">
+      <div className="flex-1 overflow-y-auto space-y-4 pr-2">
         <h1 className="text-xl font-bold text-slate-200">
           チャット＆学習エリア
         </h1>
 
         {/* チャットログの表示 */}
-        {logs?.all_chat_log && logs.all_chat_log.length > 0 ? (
-          logs.all_chat_log.map((msg, index) => (
+        {chatLog && chatLog.length > 0 ? (
+          chatLog.map((msg, index) => (
             <div
               key={msg.id || index}
               className={`max-w-[80%] rounded-lg p-3 text-sm ${
