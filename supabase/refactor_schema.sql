@@ -43,22 +43,25 @@ ON messages_new(room_id, created_at DESC);
 CREATE OR REPLACE FUNCTION create_default_note_obj()
 RETURNS trigger
 LANGUAGE plpgsql
+SECURITY DEFINER
 AS $$
 BEGIN
-  -- study モード
-  INSERT INTO chat_rooms_new (subject_id, mode)
-  VALUES (NEW.id, 'study'::chat_mode);
+  -- chat_rooms_new を2つ自動生成
+  INSERT INTO chat_rooms_new (subject_id, user_id, mode)
+  VALUES (NEW.id, NEW.user_id, 'study');
 
-  -- review モード
-  INSERT INTO chat_rooms_new (subject_id, mode)
-  VALUES (NEW.id, 'review'::chat_mode);
+  INSERT INTO chat_rooms_new (subject_id, user_id, mode)
+  VALUES (NEW.id, NEW.user_id, 'review');
 
+  -- study_notes_new も自動生成
   INSERT INTO study_notes_new (subject_id)
   VALUES (NEW.id);
 
   RETURN NEW;
 END;
 $$;
+
+
 
 
 CREATE TRIGGER subjects_create_chat_rooms_new
@@ -152,11 +155,12 @@ USING (
 
 
 --rooms
-CREATE POLICY "Users can read their own chat rooms"
+CREATE POLICY "Insert chat rooms via trigger"
 ON chat_rooms_new
-FOR SELECT
+FOR INSERT
 TO authenticated
-USING ( user_id = auth.uid() );
+WITH CHECK (true);
+
 
 CREATE POLICY "Users can insert their own chat rooms"
 ON chat_rooms_new
