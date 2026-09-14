@@ -26,13 +26,15 @@ export function SubjectDetailClient({
   subjects,
   subjectName,
   subjectId,
-  initialNote,
+  studyChatlogs,
+  interviewChatLogs,
   user,
 }: {
   subjects: Subject[];
   subjectName: string;
   subjectId: string;
-  initialNote: any;
+  studyChatlogs: any;
+  interviewChatLogs: any;
   user: any;
 }) {
   const [activeMode, setActiveMode] = useState<ModeType>("chat");
@@ -64,7 +66,7 @@ export function SubjectDetailClient({
         <main className="flex flex-1 flex-col overflow-hidden p-4 md:p-6">
           {/* ② チャットログエリア：overflow-y-auto でここだけスクロールさせる */}
           <div className="flex-1 overflow-y-auto min-h-0 mb-4">
-            {initialNote && <ChatLogs logs={initialNote} />}
+            {studyChatlogs && <ChatLogs logs={studyChatlogs} />}
           </div>
 
           <div className="shrink-0">

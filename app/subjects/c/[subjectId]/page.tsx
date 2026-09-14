@@ -1,7 +1,8 @@
-import { getNote } from "@/lib/supabase/queries/notes";
+//import { getNote } from "@/lib/supabase/queries/notes";
 
 import { createClient } from "@/lib/supabase/server";
 import { getSubjects, getSubjectName } from "@/lib/supabase/queries/subjects";
+import { getChat } from "@/lib/supabase/queries/chat";
 import { SubjectDetailClient } from "./_components/SubjectDetailClient";
 export default async function ChatPage({
   params,
@@ -9,9 +10,15 @@ export default async function ChatPage({
   params: Promise<{ subjectId: string }>;
 }) {
   const { subjectId } = await params;
-  const note = await getNote(subjectId);
+  //const note = await getNote(subjectId);
+
   const subjectName = await getSubjectName(subjectId);
   const subjects = await getSubjects();
+  const studyChatLogs = await getChat(subjectId, 1000, "study");
+  const interViewChatLogs = await getChat(subjectId, 10000, "review");
+
+  console.log(studyChatLogs);
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -20,9 +27,10 @@ export default async function ChatPage({
     <SubjectDetailClient
       user={user}
       subjectId={subjectId}
-      initialNote={note}
       subjects={subjects}
       subjectName={subjectName}
+      studyChatlogs={studyChatLogs}
+      interviewChatLogs={interViewChatLogs}
     />
   );
 }

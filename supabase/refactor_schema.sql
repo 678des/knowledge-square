@@ -65,3 +65,115 @@ CREATE TRIGGER subjects_create_chat_rooms_new
 AFTER INSERT ON subjects_new
 FOR EACH ROW
 EXECUTE PROCEDURE create_default_note_obj();
+
+
+-- 権限
+-- subjects
+CREATE POLICY "Users can read their own subjects"
+ON subjects_new
+FOR SELECT
+TO authenticated
+USING ( user_id = auth.uid() );
+
+CREATE POLICY "Users can insert their own subjects"
+ON subjects_new
+FOR INSERT
+TO authenticated
+WITH CHECK ( user_id = auth.uid() );
+
+CREATE POLICY "Users can update their own subjects"
+ON subjects_new
+FOR UPDATE
+TO authenticated
+USING ( user_id = auth.uid() )
+WITH CHECK ( user_id = auth.uid() );
+
+CREATE POLICY "Users can delete their own subjects"
+ON subjects_new
+FOR DELETE
+TO authenticated
+USING ( user_id = auth.uid() );
+
+-- messages
+CREATE POLICY "Users can read their own messages"
+ON messages_new
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM chat_rooms_new
+    WHERE chat_rooms_new.id = messages_new.room_id
+    AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can insert their own messages"
+ON messages_new
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM chat_rooms_new
+    WHERE chat_rooms_new.id = messages_new.room_id
+    AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can update their own messages"
+ON messages_new
+FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM chat_rooms_new
+    WHERE chat_rooms_new.id = messages_new.room_id
+    AND chat_rooms_new.user_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM chat_rooms_new
+    WHERE chat_rooms_new.id = messages_new.room_id
+    AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can delete their own messages"
+ON messages_new
+FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM chat_rooms_new
+    WHERE chat_rooms_new.id = messages_new.room_id
+    AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+
+--rooms
+CREATE POLICY "Users can read their own chat rooms"
+ON chat_rooms_new
+FOR SELECT
+TO authenticated
+USING ( user_id = auth.uid() );
+
+CREATE POLICY "Users can insert their own chat rooms"
+ON chat_rooms_new
+FOR INSERT
+TO authenticated
+WITH CHECK ( user_id = auth.uid() );
+
+CREATE POLICY "Users can update their own chat rooms"
+ON chat_rooms_new
+FOR UPDATE
+TO authenticated
+USING ( user_id = auth.uid() )
+WITH CHECK ( user_id = auth.uid() );
+
+CREATE POLICY "Users can delete their own chat rooms"
+ON chat_rooms_new
+FOR DELETE
+TO authenticated
+USING ( user_id = auth.uid() );
+

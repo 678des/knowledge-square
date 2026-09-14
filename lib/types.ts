@@ -12,11 +12,11 @@ export type Message = {
   created_at?: string;
 };
 
-export type Note = {
-  id: string;
-  subject_id: string;
-  user_id?: string | null;
-  ai_summary?: string | null;
-  study_note?: string | null;
-  all_chat_log?: Message[] | null;
-};
+// export type Chatlogs = {
+//   id: string;
+//   subject_id: string;
+//   user_id?: string | null;
+//   ai_summary?: string | null;
+//   study_note?: string | null;
+//   all_chat_log?: Message[] | null;
+// };
