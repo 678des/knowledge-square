@@ -10,12 +10,10 @@ export default async function ChatPage({
   params: Promise<{ subjectId: string }>;
 }) {
   const { subjectId } = await params;
-  //const note = await getNote(subjectId);
-
   const subjectName = await getSubjectName(subjectId);
   const subjects = await getSubjects();
   const studyChatLogs = await getChat(subjectId, 1000, "study");
-  const interViewChatLogs = await getChat(subjectId, 10000, "review");
+  const interViewChatLogs = await getChat(subjectId, 1000, "review");
 
   console.log(studyChatLogs);
 

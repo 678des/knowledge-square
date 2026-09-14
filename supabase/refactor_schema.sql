@@ -106,7 +106,7 @@ USING (
   EXISTS (
     SELECT 1 FROM chat_rooms_new
     WHERE chat_rooms_new.id = messages_new.room_id
-    AND chat_rooms_new.user_id = auth.uid()
+      AND chat_rooms_new.user_id = auth.uid()
   )
 );
 
@@ -118,7 +118,7 @@ WITH CHECK (
   EXISTS (
     SELECT 1 FROM chat_rooms_new
     WHERE chat_rooms_new.id = messages_new.room_id
-    AND chat_rooms_new.user_id = auth.uid()
+      AND chat_rooms_new.user_id = auth.uid()
   )
 );
 
@@ -130,14 +130,14 @@ USING (
   EXISTS (
     SELECT 1 FROM chat_rooms_new
     WHERE chat_rooms_new.id = messages_new.room_id
-    AND chat_rooms_new.user_id = auth.uid()
+      AND chat_rooms_new.user_id = auth.uid()
   )
 )
 WITH CHECK (
   EXISTS (
     SELECT 1 FROM chat_rooms_new
     WHERE chat_rooms_new.id = messages_new.room_id
-    AND chat_rooms_new.user_id = auth.uid()
+      AND chat_rooms_new.user_id = auth.uid()
   )
 );
 
@@ -149,10 +149,9 @@ USING (
   EXISTS (
     SELECT 1 FROM chat_rooms_new
     WHERE chat_rooms_new.id = messages_new.room_id
-    AND chat_rooms_new.user_id = auth.uid()
+      AND chat_rooms_new.user_id = auth.uid()
   )
 );
-
 
 --rooms
 CREATE POLICY "Insert chat rooms via trigger"
@@ -180,4 +179,60 @@ ON chat_rooms_new
 FOR DELETE
 TO authenticated
 USING ( user_id = auth.uid() );
+
+--study_notes
+CREATE POLICY "Users can read their own study notes"
+ON study_notes_new
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM subjects_new
+    WHERE subjects_new.id = study_notes_new.subject_id
+    AND subjects_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can insert their own study notes"
+ON study_notes_new
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM subjects_new
+    WHERE subjects_new.id = study_notes_new.subject_id
+    AND subjects_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can update their own study notes"
+ON study_notes_new
+FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM subjects_new
+    WHERE subjects_new.id = study_notes_new.subject_id
+    AND subjects_new.user_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM subjects_new
+    WHERE subjects_new.id = study_notes_new.subject_id
+    AND subjects_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can delete their own study notes"
+ON study_notes_new
+FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM subjects_new
+    WHERE subjects_new.id = study_notes_new.subject_id
+    AND subjects_new.user_id = auth.uid()
+  )
+);
 

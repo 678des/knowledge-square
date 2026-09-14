@@ -4,7 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import { Message } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { after } from "next/server";
+//import { after } from "next/server";
 
 export type SendMessageResult =
   | { success: true; data: string }
@@ -19,6 +19,7 @@ export type SendMessageResult =
 export async function SendMessage(
   subjectId: string,
   userMessage: string,
+  mode: string,
 ): Promise<SendMessageResult | undefined> {
   if (!userMessage.trim()) return;
   const supabase = await createClient();
@@ -31,20 +32,41 @@ export async function SendMessage(
     throw new Error("認証されていないユーザーです");
   }
 
-  console.time("getNoteData");
-  const { data: note } = await supabase
-    .from("study_notes")
-    .select("all_chat_log,subject_name,ai_summary")
-    .eq("user_id", user.id)
-    .eq("subject_id", subjectId)
-    .single<{
-      all_chat_log: Message[];
-      subject_name: string;
-      ai_summary: string;
-    }>();
+  const { data: subject } = await supabase
+    .from("subjects_new")
+    .select("name")
+    .eq("id", subjectId)
+    .single();
 
-  const subject_name = note?.subject_name;
-  let ai_summary = note?.ai_summary;
+  const { data: room } = await supabase
+    .from("chat_rooms_new")
+    .select("id")
+    .eq("subject_id", subjectId)
+    .eq("user_id", user.id)
+    .filter("mode", "eq", mode)
+    .single();
+
+  const { data: study_note } = await supabase
+    .from("study_notes")
+    .select("ai_summary")
+    .eq("subject_id", subjectId)
+    .single();
+
+  //科目名を取得
+  let subject_name = (subject as { name: string } | null)?.name || "";
+
+  //現在のルームを取得
+  const room_id = (room as { id: string } | null)?.id || "";
+
+  //現在の要約を取得
+  const ai_summary =
+    (study_note as { ai_summary: string } | null)?.ai_summary || "";
+  const { data: recentMessages } = await supabase
+    .from("messages_new")
+    .select("role, content")
+    .eq("room_id", room_id)
+    .order("created_at", { ascending: false })
+    .limit(10);
 
   const instrction =
     `あなたは一流のパーソナル・ラーニング・コーチです。学習者が単なる暗記を超え、実務やプロの現場で通用する「本質的な理解」に到達できるよう導いてください。
@@ -71,84 +93,56 @@ export async function SendMessage(
     content: userMessage,
   };
 
-  //今までのすべてのログ+現時点でユーザーが入力したコンテクスト
-  // 初回データがない場合（null）を考慮して safeArray 化
-  const previousLogs = note?.all_chat_log ?? [];
-  const currentUserAlllogs = [...previousLogs, userMsgObj];
+  const geminiContents = [...(recentMessages ?? []).reverse(), userMsgObj].map(
+    (msg) => ({
+      role: msg.role === "user" ? "user" : "model",
+      parts: [{ text: msg.content }],
+    }),
+  );
 
-  const recentLogs = currentUserAlllogs.slice(-10);
-  const geminiContents = recentLogs.map((msg) => ({
-    role: msg.role === "assistant" ? "model" : "user",
-    parts: [{ text: msg.content }],
-  }));
+  console.log("Geminiに渡すもの", geminiContents);
 
-  let currentAiAnswer = "";
-
-  try {
-    let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash-lite",
-      contents: geminiContents,
-      config: {
-        systemInstruction: instrction,
-        temperature: 0.7,
-      },
-    });
-    currentAiAnswer = response.text || "";
-  } catch {
-    //現在は省略
-    console.log("Geminiでエラー");
-  }
-
-  //--AIの要約を作る--
-  after(async () => {
-    const allLogs: Message[] = [
-      ...currentUserAlllogs,
-      { id: crypto.randomUUID(), role: "assistant", content: currentAiAnswer },
-    ];
-
-    if (allLogs.length % 10 == 0) {
-      let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const summarySystemInstruction =
-        `あなたは優秀な学習ドキュメントの要約AIです。これまでの対話ログから、ユーザーが獲得した知識や本質的な理解を、後から見返しやすいように構造化してまとめてください。`.trim();
-
-      const tempAiSummary = await ai.models.generateContent({
-        model: "gemini-3.5-flash-lite",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: `前回の要約:\n${ai_summary || "なし"}\n\n【追加・更新する対話ログ】\n${allLogs
-                  .slice(-10)
-                  .map((msg) => `${msg.role}: ${msg.content}`)
-                  .join(
-                    "\n",
-                  )}\n\n上記を踏まえ、これまでの学習内容全体が網羅された最新の要約を、以下の形式で作成してください。\n- **学習の到達点**: \n- **重要概念・本質**: \n- **残された課題・次のステップ**:`.trim(),
-              },
-            ],
-          },
-        ],
-        config: {
-          systemInstruction: summarySystemInstruction,
-          temperature: 0.2,
-        },
-      });
-
-      ai_summary = tempAiSummary.text;
-    }
-    await supabase.from("study_notes").upsert(
-      {
-        user_id: user.id,
-        subject_id: subjectId,
-        all_chat_log: allLogs,
-        ai_summary: ai_summary,
-      } as never,
-      {
-        onConflict: "user_id,subject_id",
-      },
-    );
-    revalidatePath(`/subjects/c/${subjectId}`);
+  let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const response = await ai.models.generateContent({
+    model: "gemini-3.5-flash-lite",
+    contents: geminiContents,
+    config: {
+      systemInstruction: instrction,
+      temperature: 0.7,
+    },
   });
-  return { success: true, data: currentAiAnswer };
+  const { data, error } = await supabase.from("messages_new").insert({
+    room_id: room_id,
+    role: "user",
+    content: userMessage,
+  } as never);
+
+  console.log(room_id);
+
+  const { data: roomCheck } = await supabase
+    .from("chat_rooms_new")
+    .select("id, user_id, subject_id, mode")
+    .eq("id", room_id)
+    .single();
+
+  console.log("roomCheck:", roomCheck);
+  console.log("挿入成功", data);
+  console.log("挿入error", error);
+
+  await supabase.from("messages_new").insert({
+    room_id: room_id,
+    role: "model",
+    content: response.text || "",
+  } as never);
+
+  console.log("AIからの返答", response.text);
+
+  await supabase.from("messages_new").insert({
+    room_id: room_id,
+    role: "assistant",
+    content: response.text,
+  } as never);
+
+  revalidatePath(`/subjects/c/${subjectId}`);
+  return { success: true, data: response.text || "" };
 }

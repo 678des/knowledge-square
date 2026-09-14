@@ -8,7 +8,7 @@ export default function ChatForm({ subjectId }: { subjectId: string }) {
     const formData = new FormData(event.currentTarget);
     const message = formData.get("message") as string;
     console.log("送信されたメッセージ:", message, "subjectId:", subjectId);
-    await SendMessage(subjectId, message);
+    await SendMessage(subjectId, message, "study");
   }
 
   return (

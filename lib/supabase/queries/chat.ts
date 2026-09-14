@@ -40,5 +40,5 @@ export async function getChat(subjectId: string, count: number, mode: string) {
     return [];
   }
 
-  return data ?? [];
+  return data.reverse() ?? [];
 }
