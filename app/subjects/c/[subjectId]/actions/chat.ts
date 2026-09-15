@@ -5,6 +5,7 @@ import { Message } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 //import { after } from "next/server";
+import * as z from "zod";
 
 export type SendMessageResult =
   | { success: true; data: string }
@@ -79,13 +80,17 @@ export async function SendMessage(
     3. 思考を促す対話（答えを直接教えすぎない）
     - すべてを一度に解説せず、学習者が自力でたどり着けるようなヒントや、次のステップへ進むための問いかけを交えてください。
     - ユーザーが「答えだけ教えて」「代わりにコードを書いて」と求めてきても、簡単に答えを渡さず、自力で思考を深められる導きを行ってください。
-    4. フェーズ移行ルール（面接官モードの発火）
-    - 通常時は寄り添うコーチとして解説や議論を行ってください。
-    - ユーザーがあなたの問いや確認問題に対して【正確に答えられた】と判断した直後の返答では、以下のように切り替えてください：
-     ① なぜ正解だと判断したのかをユーザーに説明する
-     ② 「では、ここから【質問フェーズ】に移ります」と明確に宣言する。
-     ③ 今学んだ概念について、抽象度の高い本質的な質問（例：「〇〇の概念を自分の言葉で説明してください」「なぜ〇〇ではなく△△を使うべきかトレードオフを述べてください」）を1問だけ出題し、ユーザーの回答を促す。
-     【現在の学習コンテキスト】・科目名/ノートタイトル: "${subject_name}"※タイトルが「無題」や抽象的な場合は、ユーザーの質問内容（本文）の文脈を最優先してください。`.trim();
+  【現在の学習コンテキスト】・科目名/ノートタイトル: "${subject_name}"※タイトルが「無題」や抽象的な場合は、ユーザーの質問内容（本文）の文脈を最優先してください。
+  必要に応じて、問題を出す必要があればボタンをつけてください。
+
+  `.trim();
+
+  // 4. フェーズ移行ルール（面接官モードの発火）
+  //   - 通常時は寄り添うコーチとして解説や議論を行ってください。
+  //   - ユーザーがあなたの問いや確認問題に対して【正確に答えられた】と判断した直後の返答では、以下のように切り替えてください：
+  //    ① なぜ正解だと判断したのかをユーザーに説明する
+  //    ② 「では、ここから【質問フェーズ】に移ります」と明確に宣言する。
+  //    ③ 今学んだ概念について、抽象度の高い本質的な質問（例：「〇〇の概念を自分の言葉で説明してください」「なぜ〇〇ではなく△△を使うべきかトレードオフを述べてください」）を1問だけ出題し、ユーザーの回答を促す。
 
   const userMsgObj: Message = {
     id: crypto.randomUUID(),
@@ -103,12 +108,36 @@ export async function SendMessage(
   console.log("Geminiに渡すもの", geminiContents);
 
   let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+  const responseJsonSchema = {
+    type: "object",
+    properties: {
+      message: { type: "string" },
+      buttons: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            message: { type: "string" },
+            id: { type: "string" },
+            label: { type: "string" }, // ボタンに表示する文字
+          },
+          required: ["id", "label"],
+        },
+      },
+    },
+    required: ["message"],
+  };
+
+  //const employeeSchema = z.fromJSONSchema(employeeJsonSchema);
   const response = await ai.models.generateContent({
     model: "gemini-3.5-flash-lite",
     contents: geminiContents,
     config: {
       systemInstruction: instrction,
       temperature: 0.7,
+      responseMimeType: "application/json",
+      responseSchema: responseJsonSchema,
     },
   });
   const { data, error } = await supabase.from("messages_new").insert({
@@ -135,7 +164,10 @@ export async function SendMessage(
     content: response.text || "",
   } as never);
 
-  console.log("AIからの返答", response.text);
+  console.log("AIからの返答", typeof response.text);
+
+  const match = JSON.parse(response.text || "{}");
+  console.log("AIからの返答JsonParse", typeof match);
 
   await supabase.from("messages_new").insert({
     room_id: room_id,
