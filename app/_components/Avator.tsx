@@ -3,7 +3,7 @@
 export default function Avator() {
   return (
     <div>
-      <h1>ログインしている</h1>
+      <h1>☺</h1>
       {/* <Popover></Popover> */}
     </div>
   );

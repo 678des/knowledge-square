@@ -7,15 +7,11 @@ import { revalidatePath } from "next/cache";
 //import { after } from "next/server";
 import * as z from "zod";
 
-export type SendMessageResult =
-  | { success: true; data: string }
-  | {
-      success: false;
-      errorType: "RATE_LIMIT";
-      clipboardText: string;
-      message: string;
-    }
-  | { success: false; errorType: "GENERAL"; message: string };
+export type SendMessageResult = {
+  success: true;
+  data: string;
+  buttons: { message?: string; id: string; label: string }[];
+};
 
 export async function SendMessage(
   subjectId: string,
@@ -71,6 +67,8 @@ export async function SendMessage(
 
   const instrction =
     `あなたは一流のパーソナル・ラーニング・コーチです。学習者が単なる暗記を超え、実務やプロの現場で通用する「本質的な理解」に到達できるよう導いてください。
+    【現在の学習コンテキスト】・科目名/ノートタイトル: "${subject_name}"※タイトルが「無題」や抽象的な場合は、ユーザーの質問内容（本文）の文脈を最優先してください。
+  
     【これまでの学習内容の要約】${ai_summary ? ai_summary : "まだ要約はありません。"}
     【役割と指導方針】
     1. 本質的な問いの提示
@@ -80,17 +78,12 @@ export async function SendMessage(
     3. 思考を促す対話（答えを直接教えすぎない）
     - すべてを一度に解説せず、学習者が自力でたどり着けるようなヒントや、次のステップへ進むための問いかけを交えてください。
     - ユーザーが「答えだけ教えて」「代わりにコードを書いて」と求めてきても、簡単に答えを渡さず、自力で思考を深められる導きを行ってください。
-  【現在の学習コンテキスト】・科目名/ノートタイトル: "${subject_name}"※タイトルが「無題」や抽象的な場合は、ユーザーの質問内容（本文）の文脈を最優先してください。
-  必要に応じて、問題を出す必要があればボタンをつけてください。
 
+  【出力形式】
+  - ユーザーがあなたの問いや確認問題に対して【正確に答えられた】と判断した直後の返答では、responseSchema の JSON 形式で buttons を返してください。
+  - JSON の message フィールドには、通常の回答と同じ密度・長さの長文を書いてください。短くまとめる必要はありません。
+  - JSON 出力時でも、通常の回答と同じレベルの深い解説・本質的説明を行ってください。
   `.trim();
-
-  // 4. フェーズ移行ルール（面接官モードの発火）
-  //   - 通常時は寄り添うコーチとして解説や議論を行ってください。
-  //   - ユーザーがあなたの問いや確認問題に対して【正確に答えられた】と判断した直後の返答では、以下のように切り替えてください：
-  //    ① なぜ正解だと判断したのかをユーザーに説明する
-  //    ② 「では、ここから【質問フェーズ】に移ります」と明確に宣言する。
-  //    ③ 今学んだ概念について、抽象度の高い本質的な質問（例：「〇〇の概念を自分の言葉で説明してください」「なぜ〇〇ではなく△△を使うべきかトレードオフを述べてください」）を1問だけ出題し、ユーザーの回答を促す。
 
   const userMsgObj: Message = {
     id: crypto.randomUUID(),
@@ -164,17 +157,19 @@ export async function SendMessage(
     content: response.text || "",
   } as never);
 
-  console.log("AIからの返答", typeof response.text);
+  const persedRes = JSON.parse(response.text || "{}");
 
-  const match = JSON.parse(response.text || "{}");
-  console.log("AIからの返答JsonParse", typeof match);
-
+  console.log("パースした", persedRes);
   await supabase.from("messages_new").insert({
     room_id: room_id,
     role: "assistant",
-    content: response.text,
+    content: persedRes.message || "",
   } as never);
 
   revalidatePath(`/subjects/c/${subjectId}`);
-  return { success: true, data: response.text || "" };
+  return {
+    success: true,
+    data: "persedRes.message",
+    buttons: persedRes.buttons ?? [],
+  };
 }

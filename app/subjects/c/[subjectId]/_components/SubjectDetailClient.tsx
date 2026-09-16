@@ -4,6 +4,7 @@
 import { useState } from "react";
 import ChatFrom from "./ChatForm";
 
+import { SendMessage } from "../actions/chat";
 import { Inter, Lora } from "next/font/google";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -40,6 +41,22 @@ export function SubjectDetailClient({
   const [activeMode, setActiveMode] = useState<ModeType>("chat");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [buttons, setButtons] = useState<any[]>([]);
+
+  async function handleSend(message: string) {
+    const res = await SendMessage(subjectId, message, "study");
+
+    if (res?.buttons) {
+      setButtons(res.buttons); // ← ここで保存
+    }
+
+    // setMessages((prev) => [
+    //   ...prev,
+    //   { role: "user", content: message },
+    //   { role: "assistant", content: res.data, buttons: res.buttons }
+    // ]);
+  }
+
   return (
     // ① h-screen で画面全体を固定し、スクロールをアプリ内部に閉じる
     <div
@@ -69,8 +86,22 @@ export function SubjectDetailClient({
             {studyChatlogs && <ChatLogs logs={studyChatlogs} />}
           </div>
 
+          {buttons.length > 0 && (
+            <div className="flex gap-2 mb-4">
+              {buttons.map((btn) => (
+                <button
+                  key={btn.value}
+                  onClick={() => handleSend(btn.value)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="shrink-0">
-            <ChatFrom subjectId={subjectId} />
+            <ChatFrom handleSend={handleSend} />
           </div>
         </main>
 
