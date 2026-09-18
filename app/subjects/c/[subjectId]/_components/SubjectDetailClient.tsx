@@ -15,7 +15,7 @@ import { Subject } from "@/lib/types";
 import StudyNoteArea from "./StudyNoteArea";
 import AISummary from "./AISummaryArea";
 export type ModeType = "study" | "review";
-
+import { SendMessageResult } from "../actions/chat";
 export const inter = Inter({
   subsets: ["latin"],
   display: "swap",
@@ -43,21 +43,34 @@ export function SubjectDetailClient({
 }) {
   const [activeMode, setActiveMode] = useState<ModeType>("study");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [normalChatLogs, setNormalChatLogs] = useState<any>(studyChatlogs);
-  const [practiceChatLogs, setPracticeChatLogs] =
-    useState<any>(interviewChatLogs);
+  const [normalChatLogs, setNormalChatLogs] = useState<any>();
+  const [practiceChatLogs, setPracticeChatLogs] = useState<any>();
   const [buttonsbool, setButtonsbool] = useState<boolean>(false);
-  console.log(activeMode);
+
   useEffect(() => {
     setNormalChatLogs(studyChatlogs);
     setPracticeChatLogs(interviewChatLogs);
-  }, [normalChatLogs]);
+  }, [subjectId]);
 
   async function handleSend(message: string) {
-    const res = await SendMessage(subjectId, message, activeMode);
-
-    if (res?.buttons) {
-      setButtonsbool(res.buttons); // ← ここで保存
+    if (activeMode == "study") {
+      setNormalChatLogs((prev: any) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "user",
+          content: message,
+          created_at: "",
+        },
+      ]);
+      const res = await SendMessage(subjectId, message, activeMode);
+      setNormalChatLogs((prev: any) => [...prev, res?.aiResponceObj]);
+      console.log("返答はああああ", res?.aiResponceObj);
+      if (res?.buttons) {
+        setButtonsbool(res.buttons); // ← ここで保存
+      }
+    } else if (activeMode == "review") {
+      //const res = await SendMessage(subjectId, message, activeMode);
     }
   }
   //console.log("現在の buttonsbool の値:", buttonsbool);

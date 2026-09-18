@@ -1,10 +1,15 @@
 "use client";
-//import { useState } from "react";
+import { useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 //import { Message } from "@/lib/types";
 export default function ChatLogs({ logs: studyChatlogs }: { logs: any }) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [studyChatlogs]);
   //const [chatLog, setChatLog] = useState<Message[]>(note?.all_chat_log || []);
 
   return (
@@ -17,16 +22,9 @@ export default function ChatLogs({ logs: studyChatlogs }: { logs: any }) {
         {/* チャットログの表示 */}
         {studyChatlogs && studyChatlogs.length > 0 ? (
           studyChatlogs.map(
-            (
-              msg: {
-                id: any;
-                role: string;
-                content: string | null | undefined;
-              },
-              index: any,
-            ) => (
+            (msg: { id: string; role: string; content: string }) => (
               <div
-                key={msg.id || index}
+                key={msg.id}
                 className={`max-w-[80%] rounded-lg p-3 text-sm ${
                   msg.role === "user"
                     ? "ml-auto bg-blue-600 text-white"
@@ -73,6 +71,9 @@ export default function ChatLogs({ logs: studyChatlogs }: { logs: any }) {
         ) : (
           <p className="text-sm text-slate-500">まだ対話ログがありません。</p>
         )}
+
+        {/* スクロール終点 */}
+        <div ref={bottomRef} />
       </div>
     </div>
   );

@@ -9,7 +9,12 @@ import * as z from "zod";
 
 export type SendMessageResult = {
   success: true;
-  data: string;
+  aiResponceObj: {
+    id: string;
+    role: string;
+    content: string;
+    created_at: string;
+  };
   buttons: boolean;
 };
 
@@ -167,7 +172,12 @@ export async function SendMessage(
   console.log("AIの返答", response.text);
   return {
     success: true,
-    data: "persedRes.message",
+    aiResponceObj: {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: response.text || "",
+      created_at: "",
+    },
     buttons: response.text?.includes("問題") || false,
   };
 }

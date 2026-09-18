@@ -7,7 +7,7 @@ import { SubjectDetailClient } from "./_components/SubjectDetailClient";
 export default async function ChatPage({
   params,
 }: {
-  params: Promise<{ subjectId: string }>;
+  params: { subjectId: string };
 }) {
   const { subjectId } = await params;
   const subjectName = await getSubjectName(subjectId);
