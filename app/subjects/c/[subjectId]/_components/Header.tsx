@@ -41,10 +41,10 @@ export default function Header({
       <div className="flex items-center gap-4">
         <div className="flex rounded-lg bg-slate-950 p-1 border border-slate-800">
           <button
-            onClick={() => onChangeMode("chat")}
+            onClick={() => onChangeMode("study")}
             className={`px-3 py-1 text-xs font-medium rounded-md transition-all
             ${
-              chatMode === "chat"
+              chatMode === "study"
                 ? "bg-blue-600 text-white shadow"
                 : "text-slate-400 hover:text-slate-200"
             }
@@ -53,10 +53,10 @@ export default function Header({
             通常学習
           </button>
           <button
-            onClick={() => onChangeMode("interview")}
+            onClick={() => onChangeMode("review")}
             className={`px-3 py-1 text-xs font-medium rounded-md transition-all 
               ${
-                chatMode === "interview"
+                chatMode === "review"
                   ? "bg-amber-600 text-white shadow"
                   : "text-slate-400 hover:text-slate-200"
               }

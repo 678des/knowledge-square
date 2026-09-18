@@ -1,7 +1,7 @@
 // app/subjects/c/[subjectId]/_components/SubjectDetailClient.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ChatFrom from "./ChatForm";
 
 import { SendMessage } from "../actions/chat";
@@ -9,9 +9,12 @@ import { Inter, Lora } from "next/font/google";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ChatLogs from "./ChatLogArea";
+import PracticeExamView from "./PracticeExamModeView";
 import { Subject } from "@/lib/types";
 
-export type ModeType = "chat" | "interview";
+import StudyNoteArea from "./StudyNoteArea";
+import AISummary from "./AISummaryArea";
+export type ModeType = "study" | "review";
 
 export const inter = Inter({
   subsets: ["latin"],
@@ -38,25 +41,26 @@ export function SubjectDetailClient({
   interviewChatLogs: any;
   user: any;
 }) {
-  const [activeMode, setActiveMode] = useState<ModeType>("chat");
+  const [activeMode, setActiveMode] = useState<ModeType>("study");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const [buttons, setButtons] = useState<any[]>([]);
+  const [normalChatLogs, setNormalChatLogs] = useState<any>(studyChatlogs);
+  const [practiceChatLogs, setPracticeChatLogs] =
+    useState<any>(interviewChatLogs);
+  const [buttonsbool, setButtonsbool] = useState<boolean>(false);
+  console.log(activeMode);
+  useEffect(() => {
+    setNormalChatLogs(studyChatlogs);
+    setPracticeChatLogs(interviewChatLogs);
+  }, [normalChatLogs]);
 
   async function handleSend(message: string) {
-    const res = await SendMessage(subjectId, message, "study");
+    const res = await SendMessage(subjectId, message, activeMode);
 
     if (res?.buttons) {
-      setButtons(res.buttons); // ← ここで保存
+      setButtonsbool(res.buttons); // ← ここで保存
     }
-
-    // setMessages((prev) => [
-    //   ...prev,
-    //   { role: "user", content: message },
-    //   { role: "assistant", content: res.data, buttons: res.buttons }
-    // ]);
   }
-
+  //console.log("現在の buttonsbool の値:", buttonsbool);
   return (
     // ① h-screen で画面全体を固定し、スクロールをアプリ内部に閉じる
     <div
@@ -83,20 +87,22 @@ export function SubjectDetailClient({
         <main className="flex flex-1 flex-col overflow-hidden p-4 md:p-6">
           {/* ② チャットログエリア：overflow-y-auto でここだけスクロールさせる */}
           <div className="flex-1 overflow-y-auto min-h-0 mb-4">
-            {studyChatlogs && <ChatLogs logs={studyChatlogs} />}
+            {normalChatLogs && activeMode == "study" && (
+              <ChatLogs logs={normalChatLogs} />
+            )}
+            {practiceChatLogs && activeMode == "review" && (
+              <PracticeExamView logs={interviewChatLogs} />
+            )}
           </div>
 
-          {buttons.length > 0 && (
+          {buttonsbool && (
             <div className="flex gap-2 mb-4">
-              {buttons.map((btn) => (
-                <button
-                  key={btn.value}
-                  onClick={() => handleSend(btn.value)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                  {btn.label}
-                </button>
-              ))}
+              <button
+                onClick={() => console.log("")}
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                模擬問題に移る
+              </button>
             </div>
           )}
 
@@ -106,13 +112,10 @@ export function SubjectDetailClient({
         </main>
 
         {/* 右側：学習メモ ＆ AI要約パネル（復活させる場合） */}
-        {/* <aside className="hidden lg:flex w-80 flex-col gap-6 p-6 border-l border-slate-800 bg-slate-900/40 overflow-y-auto">
-          <StudyNoteArea
-            subjectId={subjectId}
-            initialNote={initialNote?.study_note || ""}
-          />
-          <AISummary initialAISummary={initialNote?.ai_summary || ""} />
-        </aside> */}
+        <aside className="hidden lg:flex w-80 flex-col gap-6 p-6 border-l border-slate-800 bg-slate-900/40 overflow-y-auto">
+          {/* <StudyNoteArea subjectId={subjectId} initialNote={""} /> */}
+          <AISummary initialAISummary={""} />
+        </aside>
       </div>
     </div>
   );

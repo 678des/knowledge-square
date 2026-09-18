@@ -10,7 +10,7 @@ import * as z from "zod";
 export type SendMessageResult = {
   success: true;
   data: string;
-  buttons: { message?: string; id: string; label: string }[];
+  buttons: boolean;
 };
 
 export async function SendMessage(
@@ -18,7 +18,12 @@ export async function SendMessage(
   userMessage: string,
   mode: string,
 ): Promise<SendMessageResult | undefined> {
-  if (!userMessage.trim()) return;
+  if (
+    !userMessage.trim() ||
+    !subjectId.trim() ||
+    !(mode == "review" || mode == "study")
+  )
+    return;
   const supabase = await createClient();
 
   const {
@@ -80,10 +85,10 @@ export async function SendMessage(
     - ユーザーが「答えだけ教えて」「代わりにコードを書いて」と求めてきても、簡単に答えを渡さず、自力で思考を深められる導きを行ってください。
 
   【出力形式】
-  - ユーザーがあなたの問いや確認問題に対して【正確に答えられた】と判断した直後の返答では、responseSchema の JSON 形式で buttons を返してください。
-  - JSON の message フィールドには、通常の回答と同じ密度・長さの長文を書いてください。短くまとめる必要はありません。
-  - JSON 出力時でも、通常の回答と同じレベルの深い解説・本質的説明を行ってください。
+  - ユーザーがあなたの問いや確認問題に対して【正確に答えられた】と判断した直後の返答では、"模擬問題に移りますか？"とだけ最後に付け足してください
   `.trim();
+  //現在のユーザーの書いているキーワードは、以下の項目です。{study_noteの変数「アーキテクチャ、○○の原則、○○定理、セキュリティ」}
+  //必要に応じてこれらの項目とユーザーの発言から、現在何をユーザーに教えるべきかを判断してください。
 
   const userMsgObj: Message = {
     id: crypto.randomUUID(),
@@ -102,25 +107,25 @@ export async function SendMessage(
 
   let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  const responseJsonSchema = {
-    type: "object",
-    properties: {
-      message: { type: "string" },
-      buttons: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            message: { type: "string" },
-            id: { type: "string" },
-            label: { type: "string" }, // ボタンに表示する文字
-          },
-          required: ["id", "label"],
-        },
-      },
-    },
-    required: ["message"],
-  };
+  // const responseJsonSchema = {
+  //   type: "object",
+  //   properties: {
+  //     message: { type: "string" },
+  //     buttons: {
+  //       type: "array",
+  //       items: {
+  //         type: "object",
+  //         properties: {
+  //           message: { type: "string" },
+  //           id: { type: "string" },
+  //           label: { type: "string" }, // ボタンに表示する文字
+  //         },
+  //         required: ["id", "label"],
+  //       },
+  //     },
+  //   },
+  //   required: ["message"],
+  // };
 
   //const employeeSchema = z.fromJSONSchema(employeeJsonSchema);
   const response = await ai.models.generateContent({
@@ -129,8 +134,8 @@ export async function SendMessage(
     config: {
       systemInstruction: instrction,
       temperature: 0.7,
-      responseMimeType: "application/json",
-      responseSchema: responseJsonSchema,
+      //responseMimeType: "application/json",
+      //responseSchema: responseJsonSchema,
     },
   });
   const { data, error } = await supabase.from("messages_new").insert({
@@ -150,26 +155,19 @@ export async function SendMessage(
   console.log("roomCheck:", roomCheck);
   console.log("挿入成功", data);
   console.log("挿入error", error);
+  console.log("room_id", room_id, "subjectId", subjectId);
 
-  await supabase.from("messages_new").insert({
-    room_id: room_id,
-    role: "model",
-    content: response.text || "",
-  } as never);
-
-  const persedRes = JSON.parse(response.text || "{}");
-
-  console.log("パースした", persedRes);
   await supabase.from("messages_new").insert({
     room_id: room_id,
     role: "assistant",
-    content: persedRes.message || "",
+    content: response.text || "",
   } as never);
 
-  revalidatePath(`/subjects/c/${subjectId}`);
+  //console.log("trueか？", response.text?.includes("問題"));
+  console.log("AIの返答", response.text);
   return {
     success: true,
     data: "persedRes.message",
-    buttons: persedRes.buttons ?? [],
+    buttons: response.text?.includes("問題") || false,
   };
 }

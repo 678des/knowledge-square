@@ -12,10 +12,16 @@ export default async function ChatPage({
   const { subjectId } = await params;
   const subjectName = await getSubjectName(subjectId);
   const subjects = await getSubjects();
-  const studyChatLogs = await getChat(subjectId, 1000, "study");
-  const interViewChatLogs = await getChat(subjectId, 1000, "review");
+  const studyChatLogs = await getChat(subjectId, 10, "study");
+  const interViewChatLogs = await getChat(subjectId, 10, "review");
 
   console.log("科目", subjectName);
+  console.log(
+    "interViewChatLogs",
+    interViewChatLogs,
+    "studyChatLogs",
+    studyChatLogs,
+  );
 
   const supabase = await createClient();
   const {
