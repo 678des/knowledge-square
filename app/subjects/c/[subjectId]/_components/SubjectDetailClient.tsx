@@ -11,11 +11,12 @@ import Header from "./Header";
 import ChatLogs from "./ChatLogArea";
 import PracticeExamView from "./PracticeExamModeView";
 import { Subject } from "@/lib/types";
-
+import AIReplyButton from "./AIReplyButton";
 import StudyNoteArea from "./StudyNoteArea";
 import AISummary from "./AISummaryArea";
 export type ModeType = "study" | "review";
 import { SendMessageResult } from "../actions/chat";
+import { PracticeExam, SendExamMessage } from "../actions/practice";
 export const inter = Inter({
   subsets: ["latin"],
   display: "swap",
@@ -47,7 +48,7 @@ export function SubjectDetailClient({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [normalChatLogs, setNormalChatLogs] = useState<any>();
   const [practiceChatLogs, setPracticeChatLogs] = useState<any>();
-  const [buttonsbool, setButtonsbool] = useState<boolean>(false);
+  const [buttonsbool, setButtonsbool] = useState<boolean>(true);
   const [summary, setSummary] = useState<string>();
 
   useEffect(() => {
@@ -55,6 +56,13 @@ export function SubjectDetailClient({
     setPracticeChatLogs(interviewChatLogs);
     setSummary(aiSummary);
   }, [subjectId]);
+
+  async function execPractice() {
+    setActiveMode("review");
+    const res = await PracticeExam(subjectId);
+    setPracticeChatLogs((prev: any) => [...prev, res.aiResponceObj]);
+  }
+  console.log(activeMode);
 
   async function handleSend(message: string) {
     if (activeMode == "study") {
@@ -69,12 +77,22 @@ export function SubjectDetailClient({
       ]);
       const res = await SendMessage(subjectId, message, activeMode);
       setNormalChatLogs((prev: any) => [...prev, res?.aiResponceObj]);
-      console.log("返答はああああ", res?.aiResponceObj);
       if (res?.buttons) {
         setButtonsbool(res.buttons); // ← ここで保存
       }
+      setButtonsbool(true);
     } else if (activeMode == "review") {
-      //const res = await SendMessage(subjectId, message, activeMode);
+      setPracticeChatLogs((prev: any) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "user",
+          content: message,
+          created_at: "",
+        },
+      ]);
+      const res = await SendExamMessage(subjectId, message);
+      setPracticeChatLogs((prev: any) => [...prev, res?.aiResponceObj]);
     }
   }
   //console.log("現在の buttonsbool の値:", buttonsbool);
@@ -108,21 +126,13 @@ export function SubjectDetailClient({
               <ChatLogs logs={normalChatLogs} />
             )}
             {practiceChatLogs && activeMode == "review" && (
-              <PracticeExamView logs={interviewChatLogs} />
+              <PracticeExamView logs={practiceChatLogs} />
+            )}
+
+            {activeMode == "study" && buttonsbool && (
+              <AIReplyButton setReviewMode={execPractice} />
             )}
           </div>
-
-          {buttonsbool && (
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => console.log("")}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
-                模擬問題に移る
-              </button>
-            </div>
-          )}
-
           <div className="shrink-0">
             <ChatFrom handleSend={handleSend} />
           </div>

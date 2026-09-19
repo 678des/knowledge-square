@@ -1,14 +1,19 @@
+"use client";
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
-
+import { useRef, useEffect } from "react";
 export default function PracticeExamView({
   logs: PracticeExamlogs,
 }: {
   logs: any;
 }) {
   //const [chatLog, setChatLog] = useState<Message[]>(note?.all_chat_log || []);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [PracticeExamlogs]);
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-slate-950 text-slate-100">
       <div className="flex-1 overflow-y-auto space-y-4 pr-2">
@@ -75,6 +80,9 @@ export default function PracticeExamView({
         ) : (
           <p className="text-sm text-slate-500">まだ対話ログがありません。</p>
         )}
+
+        {/* スクロール終点 */}
+        <div ref={bottomRef} />
       </div>
     </div>
   );

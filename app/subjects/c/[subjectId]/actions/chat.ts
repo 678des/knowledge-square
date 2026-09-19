@@ -240,6 +240,6 @@ AI: ${response.text}
       content: response.text || "",
       created_at: "",
     },
-    buttons: response.text?.includes("問題") || false,
+    buttons: response.text?.includes("か") || false,
   };
 }
