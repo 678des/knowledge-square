@@ -33,6 +33,7 @@ export function SubjectDetailClient({
   studyChatlogs,
   interviewChatLogs,
   user,
+  aiSummary,
 }: {
   subjects: Subject[];
   subjectName: string;
@@ -40,16 +41,19 @@ export function SubjectDetailClient({
   studyChatlogs: any;
   interviewChatLogs: any;
   user: any;
+  aiSummary: string;
 }) {
   const [activeMode, setActiveMode] = useState<ModeType>("study");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [normalChatLogs, setNormalChatLogs] = useState<any>();
   const [practiceChatLogs, setPracticeChatLogs] = useState<any>();
   const [buttonsbool, setButtonsbool] = useState<boolean>(false);
+  const [summary, setSummary] = useState<string>();
 
   useEffect(() => {
     setNormalChatLogs(studyChatlogs);
     setPracticeChatLogs(interviewChatLogs);
+    setSummary(aiSummary);
   }, [subjectId]);
 
   async function handleSend(message: string) {
@@ -127,7 +131,7 @@ export function SubjectDetailClient({
         {/* 右側：学習メモ ＆ AI要約パネル（復活させる場合） */}
         <aside className="hidden lg:flex w-80 flex-col gap-6 p-6 border-l border-slate-800 bg-slate-900/40 overflow-y-auto">
           {/* <StudyNoteArea subjectId={subjectId} initialNote={""} /> */}
-          <AISummary initialAISummary={""} />
+          <AISummary initialAISummary={summary || ""} />
         </aside>
       </div>
     </div>

@@ -3,8 +3,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { Message } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
-//import { after } from "next/server";
+import { after } from "next/server";
 import * as z from "zod";
 
 export type SendMessageResult = {
@@ -68,6 +67,7 @@ export async function SendMessage(
   //現在の要約を取得
   const ai_summary =
     (study_note as { ai_summary: string } | null)?.ai_summary || "";
+
   const { data: recentMessages } = await supabase
     .from("messages_new")
     .select("role, content")
@@ -78,8 +78,7 @@ export async function SendMessage(
   const instrction =
     `あなたは一流のパーソナル・ラーニング・コーチです。学習者が単なる暗記を超え、実務やプロの現場で通用する「本質的な理解」に到達できるよう導いてください。
     【現在の学習コンテキスト】・科目名/ノートタイトル: "${subject_name}"※タイトルが「無題」や抽象的な場合は、ユーザーの質問内容（本文）の文脈を最優先してください。
-  
-    【これまでの学習内容の要約】${ai_summary ? ai_summary : "まだ要約はありません。"}
+    
     【役割と指導方針】
     1. 本質的な問いの提示
     - 表面的な知識の確認にとどまらず、なぜそれが成り立つのか（原理・原則）、トレードオフは何か、別の文脈に応用できるかを問うハイレベルな思考問題やケーススタディを出題してください。
@@ -89,9 +88,30 @@ export async function SendMessage(
     - すべてを一度に解説せず、学習者が自力でたどり着けるようなヒントや、次のステップへ進むための問いかけを交えてください。
     - ユーザーが「答えだけ教えて」「代わりにコードを書いて」と求めてきても、簡単に答えを渡さず、自力で思考を深められる導きを行ってください。
 
-  【出力形式】
-  - ユーザーがあなたの問いや確認問題に対して【正確に答えられた】と判断した直後の返答では、"模擬問題に移りますか？"とだけ最後に付け足してください
-  `.trim();
+  【模擬試験への移行判定】
+【役割と指導方針】
+1. 本質的な問いの提示
+2. わかりやすさと深さの両立
+3. 思考を促す対話（答えを直接教えすぎない）
+
+【模擬試験への移行判定】
+ユーザーが以下を満たした場合のみ、返答の最後に
+「模擬問題に移りますか？」
+と付け足してください。
+
+条件：
+- 核心を正しく説明できている
+- 誤解がない
+- 原理・理由・構造を理解している
+- 追加説明が不要と判断できる
+
+面接モードへの実際の移行は UI 側で行われます。
+あなたは提案するだけでよい。
+
+【現在の学習コンテキスト・これまでの要約】
+    ${ai_summary ? ai_summary : "（まだ要約はありません。最初のセッションです）"}
+
+`.trim();
   //現在のユーザーの書いているキーワードは、以下の項目です。{study_noteの変数「アーキテクチャ、○○の原則、○○定理、セキュリティ」}
   //必要に応じてこれらの項目とユーザーの発言から、現在何をユーザーに教えるべきかを判断してください。
 
@@ -101,46 +121,32 @@ export async function SendMessage(
     content: userMessage,
   };
 
-  const geminiContents = [...(recentMessages ?? []).reverse(), userMsgObj].map(
-    (msg) => ({
-      role: msg.role === "user" ? "user" : "model",
-      parts: [{ text: msg.content }],
-    }),
-  );
+  const geminiContents = [
+    // ② 過去ログ
+    ...((recentMessages ?? []) as Array<{ role: string; content: string }>)
+      .reverse()
+      .map((msg) => ({
+        role: msg.role === "user" ? "user" : "model",
+        parts: [{ text: msg.content }],
+      })),
+
+    // ③ 今回のユーザー入力
+    {
+      role: "user",
+      parts: [{ text: userMessage }],
+    },
+  ];
 
   console.log("Geminiに渡すもの", geminiContents);
 
   let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  // const responseJsonSchema = {
-  //   type: "object",
-  //   properties: {
-  //     message: { type: "string" },
-  //     buttons: {
-  //       type: "array",
-  //       items: {
-  //         type: "object",
-  //         properties: {
-  //           message: { type: "string" },
-  //           id: { type: "string" },
-  //           label: { type: "string" }, // ボタンに表示する文字
-  //         },
-  //         required: ["id", "label"],
-  //       },
-  //     },
-  //   },
-  //   required: ["message"],
-  // };
-
-  //const employeeSchema = z.fromJSONSchema(employeeJsonSchema);
   const response = await ai.models.generateContent({
     model: "gemini-3.5-flash-lite",
     contents: geminiContents,
     config: {
       systemInstruction: instrction,
       temperature: 0.7,
-      //responseMimeType: "application/json",
-      //responseSchema: responseJsonSchema,
     },
   });
   const { data, error } = await supabase.from("messages_new").insert({
@@ -151,16 +157,16 @@ export async function SendMessage(
 
   console.log(room_id);
 
-  const { data: roomCheck } = await supabase
-    .from("chat_rooms_new")
-    .select("id, user_id, subject_id, mode")
-    .eq("id", room_id)
-    .single();
+  // const { data: roomCheck } = await supabase
+  //   .from("chat_rooms_new")
+  //   .select("id, user_id, subject_id, mode")
+  //   .eq("id", room_id)
+  //   .single();
 
-  console.log("roomCheck:", roomCheck);
-  console.log("挿入成功", data);
-  console.log("挿入error", error);
-  console.log("room_id", room_id, "subjectId", subjectId);
+  // console.log("roomCheck:", roomCheck);
+  // console.log("挿入成功", data);
+  // console.log("挿入error", error);
+  // console.log("room_id", room_id, "subjectId", subjectId);
 
   await supabase.from("messages_new").insert({
     room_id: room_id,
@@ -169,7 +175,63 @@ export async function SendMessage(
   } as never);
 
   //console.log("trueか？", response.text?.includes("問題"));
-  console.log("AIの返答", response.text);
+
+  //会話がAIで終わるのを防ぐため
+
+  after(async () => {
+    console.log("dosummary");
+    const summarySystemInstruction =
+      `あなたは優秀な学習ドキュメントの要約AIです。これまでの対話ログから、ユーザーが獲得した知識や本質的な理解を、後から見返しやすいように構造化してまとめてください。`.trim();
+    const recentLogText = (
+      (recentMessages ?? []) as Array<{ role: string; content: string }>
+    )
+      .reverse()
+      .map(
+        (msg) => `${msg.role === "user" ? "ユーザー" : "AI"}: ${msg.content}`,
+      )
+      .join("\n");
+    const beforeSummary = `
+【前回の要約】
+${ai_summary}
+
+【直近の対話の流れ（過去ログ含む）】
+${recentLogText}
+ユーザー: ${userMessage}
+AI: ${response.text}
+
+上記を踏まえ、これまでの学習内容全体が網羅された最新の要約を、以下の形式で作成してください。
+- **学習の到達点**: 
+- **重要概念・本質**: 
+- **残された課題・次のステップ**
+  `.trim();
+
+    ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const newsummary = await ai.models.generateContent({
+      model: "gemini-3.5-flash-lite",
+      contents: {
+        role: "user",
+        parts: [
+          {
+            text: beforeSummary,
+          },
+        ],
+      },
+      config: {
+        systemInstruction: summarySystemInstruction,
+        temperature: 0.2,
+      },
+    });
+    const { error: summaryError } = await supabase
+      .from("study_notes_new")
+      .update({
+        ai_summary: newsummary.text,
+      } as never)
+      .eq("subject_id", subjectId)
+      .single();
+    console.error("サマリーエラー", summaryError);
+
+    console.log("AIの生成した要約", newsummary.text);
+  });
   return {
     success: true,
     aiResponceObj: {

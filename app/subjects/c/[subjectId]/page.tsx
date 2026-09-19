@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSubjects, getSubjectName } from "@/lib/supabase/queries/subjects";
 import { getChat } from "@/lib/supabase/queries/chat";
+import { getSummary } from "@/lib/supabase/queries/summary";
 import { SubjectDetailClient } from "./_components/SubjectDetailClient";
 export default async function ChatPage({
   params,
@@ -14,6 +15,7 @@ export default async function ChatPage({
   const subjects = await getSubjects();
   const studyChatLogs = await getChat(subjectId, 10, "study");
   const interViewChatLogs = await getChat(subjectId, 10, "review");
+  const aiSummary = await getSummary(subjectId);
 
   console.log("科目", subjectName);
   console.log(
@@ -35,6 +37,7 @@ export default async function ChatPage({
       subjectName={subjectName}
       studyChatlogs={studyChatLogs}
       interviewChatLogs={interViewChatLogs}
+      aiSummary={typeof aiSummary === "string" ? aiSummary : ""}
     />
   );
 }
