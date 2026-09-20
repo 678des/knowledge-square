@@ -34,6 +34,20 @@ CREATE TABLE study_notes_new(
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE exam_problems(
+   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   room_id UUID NOT NULL REFERENCES chat_rooms_new(id) ON DELETE CASCADE,
+   question_content TEXT NOT NULL,
+   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE exam_attempts(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  problem_id UUID NOT NULL REFERENCES exam_problems(id) ON DELETE CASCADE,
+  role TEXT,
+  content TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 
 
 CREATE INDEX messages_room_id_created_at_idx
@@ -236,3 +250,129 @@ USING (
   )
 );
 
+
+
+-- ==========================================
+-- exam_problems のポリシー
+-- ==========================================
+
+CREATE POLICY "Users can read their own exam problems"
+ON exam_problems
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM chat_rooms_new
+    WHERE chat_rooms_new.id = exam_problems.room_id
+      AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can insert their own exam problems"
+ON exam_problems
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM chat_rooms_new
+    WHERE chat_rooms_new.id = exam_problems.room_id
+      AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can update their own exam problems"
+ON exam_problems
+FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM chat_rooms_new
+    WHERE chat_rooms_new.id = exam_problems.room_id
+      AND chat_rooms_new.user_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM chat_rooms_new
+    WHERE chat_rooms_new.id = exam_problems.room_id
+      AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can delete their own exam problems"
+ON exam_problems
+FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM chat_rooms_new
+    WHERE chat_rooms_new.id = exam_problems.room_id
+      AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+
+-- ==========================================
+-- exam_attempts のポリシー
+-- （親の exam_problems と chat_rooms を二段階でチェック）
+-- ==========================================
+
+CREATE POLICY "Users can read their own exam attempts"
+ON exam_attempts
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM exam_problems
+    JOIN chat_rooms_new ON chat_rooms_new.id = exam_problems.room_id
+    WHERE exam_problems.id = exam_attempts.problem_id
+      AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can insert their own exam attempts"
+ON exam_attempts
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM exam_problems
+    JOIN chat_rooms_new ON chat_rooms_new.id = exam_problems.room_id
+    WHERE exam_problems.id = exam_attempts.problem_id
+      AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can update their own exam attempts"
+ON exam_attempts
+FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM exam_problems
+    JOIN chat_rooms_new ON chat_rooms_new.id = exam_problems.room_id
+    WHERE exam_problems.id = exam_attempts.problem_id
+      AND chat_rooms_new.user_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM exam_problems
+    JOIN chat_rooms_new ON chat_rooms_new.id = exam_problems.room_id
+    WHERE exam_problems.id = exam_attempts.problem_id
+      AND chat_rooms_new.user_id = auth.uid()
+  )
+);
+
+CREATE POLICY "Users can delete their own exam attempts"
+ON exam_attempts
+FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM exam_problems
+    JOIN chat_rooms_new ON chat_rooms_new.id = exam_problems.room_id
+    WHERE exam_problems.id = exam_attempts.problem_id
+      AND chat_rooms_new.user_id = auth.uid()
+  )
+);

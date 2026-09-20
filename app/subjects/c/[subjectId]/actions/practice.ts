@@ -119,10 +119,15 @@ export async function PracticeExam(subjectId: string) {
     },
   });
 
-  await supabase.from("messages_new").insert({
+  // await supabase.from("messages_new").insert({
+  //   room_id: reviewroom_id,
+  //   role: "assistant",
+  //   content: response.text || "",
+  // } as never);
+
+  await supabase.from("exam_problems").insert({
     room_id: reviewroom_id,
-    role: "assistant",
-    content: response.text || "",
+    question_content: response.text || "",
   } as never);
 
   return {

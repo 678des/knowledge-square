@@ -17,6 +17,8 @@ import AISummary from "./AISummaryArea";
 export type ModeType = "study" | "review";
 import { SendMessageResult } from "../actions/chat";
 import { PracticeExam, SendExamMessage } from "../actions/practice";
+import ExamProblemSidebar from "./ExamProblemList";
+import ExamProblemDetail from "./ExamChat";
 export const inter = Inter({
   subsets: ["latin"],
   display: "swap",
@@ -33,6 +35,7 @@ export function SubjectDetailClient({
   subjectId,
   studyChatlogs,
   interviewChatLogs,
+  problems,
   user,
   aiSummary,
 }: {
@@ -41,26 +44,38 @@ export function SubjectDetailClient({
   subjectId: string;
   studyChatlogs: any;
   interviewChatLogs: any;
+  problems: any;
   user: any;
   aiSummary: string;
 }) {
   const [activeMode, setActiveMode] = useState<ModeType>("study");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [normalChatLogs, setNormalChatLogs] = useState<any>();
-  const [practiceChatLogs, setPracticeChatLogs] = useState<any>();
+  //const [practiceChatLogs, setPracticeChatLogs] = useState<any>();
+  const [examProblems, setExamProblems] = useState<any>();
+
   const [buttonsbool, setButtonsbool] = useState<boolean>(true);
   const [summary, setSummary] = useState<string>();
 
+  const [selectedProblemId, setSelectedProblemId] = useState<string | null>(
+    problems[1]?.id || null,
+  );
+
+  const selectedProblem =
+    problems.find((p: { id: string | null }) => p.id === selectedProblemId) ||
+    null;
+
   useEffect(() => {
     setNormalChatLogs(studyChatlogs);
-    setPracticeChatLogs(interviewChatLogs);
+    // setPracticeChatLogs(interviewChatLogs);
+    setExamProblems(problems);
     setSummary(aiSummary);
   }, [subjectId]);
 
   async function execPractice() {
     setActiveMode("review");
     const res = await PracticeExam(subjectId);
-    setPracticeChatLogs((prev: any) => [...prev, res.aiResponceObj]);
+    //setPracticeChatLogs((prev: any) => [...prev, res.aiResponceObj]);
   }
   console.log(activeMode);
 
@@ -82,17 +97,17 @@ export function SubjectDetailClient({
       }
       setButtonsbool(true);
     } else if (activeMode == "review") {
-      setPracticeChatLogs((prev: any) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "user",
-          content: message,
-          created_at: "",
-        },
-      ]);
+      // setPracticeChatLogs((prev: any) => [
+      //   ...prev,
+      //   {
+      //     id: crypto.randomUUID(),
+      //     role: "user",
+      //     content: message,
+      //     created_at: "",
+      //   },
+      // ]);
       const res = await SendExamMessage(subjectId, message);
-      setPracticeChatLogs((prev: any) => [...prev, res?.aiResponceObj]);
+      //setPracticeChatLogs((prev: any) => [...prev, res?.aiResponceObj]);
     }
   }
   //console.log("現在の buttonsbool の値:", buttonsbool);
@@ -125,23 +140,39 @@ export function SubjectDetailClient({
             {normalChatLogs && activeMode == "study" && (
               <ChatLogs logs={normalChatLogs} />
             )}
-            {practiceChatLogs && activeMode == "review" && (
-              <PracticeExamView logs={practiceChatLogs} />
-            )}
 
             {activeMode == "study" && buttonsbool && (
               <AIReplyButton setReviewMode={execPractice} />
             )}
+
+            {/* 右側：メインエリア（問題の詳細・やり取り・フォーム） */}
+            {activeMode == "review" && (
+              <ExamProblemDetail
+                problem={selectedProblem}
+                onSubmitAnswer={async (problemId, text) => {
+                  // ここにServer Action等の処理を繋ぎます
+                  console.log("提出:", problemId, text);
+                }}
+              />
+            )}
           </div>
           <div className="shrink-0">
-            <ChatFrom handleSend={handleSend} />
+            {activeMode == "study" && <ChatFrom handleSend={handleSend} />}
           </div>
         </main>
 
         {/* 右側：学習メモ ＆ AI要約パネル（復活させる場合） */}
         <aside className="hidden lg:flex w-80 flex-col gap-6 p-6 border-l border-slate-800 bg-slate-900/40 overflow-y-auto">
-          {/* <StudyNoteArea subjectId={subjectId} initialNote={""} /> */}
-          <AISummary initialAISummary={summary || ""} />
+          {examProblems && activeMode == "review" && (
+            <ExamProblemSidebar
+              problems={examProblems}
+              selectedProblemId={""}
+              onSelectProblem={setSelectedProblemId}
+            />
+          )}
+          {activeMode == "study" && (
+            <AISummary initialAISummary={summary || ""} />
+          )}
         </aside>
       </div>
     </div>
