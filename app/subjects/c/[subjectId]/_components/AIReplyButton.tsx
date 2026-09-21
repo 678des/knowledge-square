@@ -1,4 +1,3 @@
-import { ModeType } from "./SubjectDetailClient";
 export default function AIReplyButton({
   setReviewMode,
 }: {

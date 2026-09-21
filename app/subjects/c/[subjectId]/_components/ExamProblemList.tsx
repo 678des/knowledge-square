@@ -44,11 +44,12 @@ export default function ExamProblemSidebar({
         const isPassed =
           lastAssistantAttempt?.content?.includes("合格") || false;
         const isSelected = problem.id === selectedProblemId;
-
         return (
           <button
             key={problem.id}
-            onClick={() => onSelectProblem(problem.id)}
+            onClick={() => {
+              onSelectProblem(problem.id);
+            }}
             className={`w-full text-left p-3 rounded-lg transition-all border text-sm flex items-center justify-between ${
               isSelected
                 ? "bg-blue-600/20 border-blue-500/50 text-white shadow-sm"

@@ -19,6 +19,8 @@ import { SendMessageResult } from "../actions/chat";
 import { PracticeExam, SendExamMessage } from "../actions/practice";
 import ExamProblemSidebar from "./ExamProblemList";
 import ExamProblemDetail from "./ExamChat";
+import { Exam } from "../actions/exam";
+import { div } from "framer-motion/client";
 export const inter = Inter({
   subsets: ["latin"],
   display: "swap",
@@ -51,15 +53,12 @@ export function SubjectDetailClient({
   const [activeMode, setActiveMode] = useState<ModeType>("study");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [normalChatLogs, setNormalChatLogs] = useState<any>();
-  //const [practiceChatLogs, setPracticeChatLogs] = useState<any>();
   const [examProblems, setExamProblems] = useState<any>();
-
-  const [buttonsbool, setButtonsbool] = useState<boolean>(true);
-  const [summary, setSummary] = useState<string>();
-
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(
-    problems[1]?.id || null,
+    problems[1]?.id || "",
   );
+
+  const [summary, setSummary] = useState<string>();
 
   const selectedProblem =
     problems.find((p: { id: string | null }) => p.id === selectedProblemId) ||
@@ -77,37 +76,23 @@ export function SubjectDetailClient({
     const res = await PracticeExam(subjectId);
     //setPracticeChatLogs((prev: any) => [...prev, res.aiResponceObj]);
   }
-  console.log(activeMode);
-
   async function handleSend(message: string) {
-    if (activeMode == "study") {
-      setNormalChatLogs((prev: any) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "user",
-          content: message,
-          created_at: "",
-        },
-      ]);
-      const res = await SendMessage(subjectId, message, activeMode);
-      setNormalChatLogs((prev: any) => [...prev, res?.aiResponceObj]);
-      if (res?.buttons) {
-        setButtonsbool(res.buttons); // ← ここで保存
-      }
-      setButtonsbool(true);
-    } else if (activeMode == "review") {
-      // setPracticeChatLogs((prev: any) => [
-      //   ...prev,
-      //   {
-      //     id: crypto.randomUUID(),
-      //     role: "user",
-      //     content: message,
-      //     created_at: "",
-      //   },
-      // ]);
-      const res = await SendExamMessage(subjectId, message);
-      //setPracticeChatLogs((prev: any) => [...prev, res?.aiResponceObj]);
+    setNormalChatLogs((prev: any) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: message,
+        created_at: "",
+      },
+    ]);
+    const res = await SendMessage(subjectId, message, activeMode);
+    setNormalChatLogs((prev: any) => [...prev, res?.aiResponceObj]);
+  }
+
+  async function handleAnswer(message: string) {
+    if (selectedProblemId) {
+      await Exam(message, subjectId, selectedProblemId);
     }
   }
   //console.log("現在の buttonsbool の値:", buttonsbool);
@@ -134,46 +119,43 @@ export function SubjectDetailClient({
           subjects={subjects}
         />
 
-        <main className="flex flex-1 flex-col overflow-hidden p-4 md:p-6">
-          {/* ② チャットログエリア：overflow-y-auto でここだけスクロールさせる */}
-          <div className="flex-1 overflow-y-auto min-h-0 mb-4">
-            {normalChatLogs && activeMode == "study" && (
-              <ChatLogs logs={normalChatLogs} />
-            )}
-
-            {activeMode == "study" && buttonsbool && (
-              <AIReplyButton setReviewMode={execPractice} />
-            )}
-
-            {/* 右側：メインエリア（問題の詳細・やり取り・フォーム） */}
-            {activeMode == "review" && (
-              <ExamProblemDetail
-                problem={selectedProblem}
-                onSubmitAnswer={async (problemId, text) => {
-                  // ここにServer Action等の処理を繋ぎます
-                  console.log("提出:", problemId, text);
-                }}
-              />
-            )}
-          </div>
-          <div className="shrink-0">
-            {activeMode == "study" && <ChatFrom handleSend={handleSend} />}
-          </div>
-        </main>
-
-        {/* 右側：学習メモ ＆ AI要約パネル（復活させる場合） */}
-        <aside className="hidden lg:flex w-80 flex-col gap-6 p-6 border-l border-slate-800 bg-slate-900/40 overflow-y-auto">
-          {examProblems && activeMode == "review" && (
+        {examProblems && activeMode == "review" && (
+          <aside className="hidden lg:flex w-80 flex-col gap-6 p-6 border-l border-slate-800 bg-slate-900/40 overflow-y-auto">
             <ExamProblemSidebar
               problems={examProblems}
               selectedProblemId={""}
               onSelectProblem={setSelectedProblemId}
             />
-          )}
-          {activeMode == "study" && (
+          </aside>
+        )}
+        {/* {activeMode == "study" &&  (
+          <aside className="hidden lg:flex w-80 flex-col gap-6 p-6 border-l border-slate-800 bg-slate-900/40 overflow-y-auto">
             <AISummary initialAISummary={summary || ""} />
-          )}
-        </aside>
+          </aside>
+        )} */}
+
+        <main className="flex flex-1 flex-col overflow-hidden p-4 md:p-6">
+          {/* ② チャットログエリア：overflow-y-auto でここだけスクロールさせる */}
+          <div className="flex-1 overflow-y-auto min-h-0 mb-4">
+            {normalChatLogs && activeMode == "study" && (
+              <div>
+                <ChatLogs logs={normalChatLogs} />
+                <AIReplyButton setReviewMode={execPractice} />
+              </div>
+            )}
+
+            {/* 右側：メインエリア（問題の詳細・やり取り・フォーム） */}
+            {activeMode == "review" && (
+              <ExamProblemDetail problem={selectedProblem} />
+            )}
+          </div>
+          <div className="shrink-0">
+            {activeMode == "study" && <ChatFrom handleSend={handleSend} />}
+            {activeMode == "review" && <ChatFrom handleSend={handleAnswer} />}
+          </div>
+        </main>
+
+        {/* 右側：学習メモ ＆ AI要約パネル（復活させる場合） */}
       </div>
     </div>
   );
