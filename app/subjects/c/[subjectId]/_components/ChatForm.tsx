@@ -1,20 +1,18 @@
 "use client";
 
-import React from "react";
-import { SendMessage } from "@/app/subjects/c/[subjectId]/actions/chat";
-export default function ChatForm({ subjectId }: { subjectId: string }) {
-  async function handleMessageSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const message = formData.get("message") as string;
-    console.log("送信されたメッセージ:", message, "subjectId:", subjectId);
-    // ここで Server Action や API 経由で Supabase 保存処理を呼び出す
-    await SendMessage(subjectId, message); // Server Action を呼び出す
-  }
-
+import { useState } from "react";
+export default function ChatForm({
+  handleSend,
+}: {
+  handleSend: (message: string) => void;
+}) {
+  const [userInputMsg, setUserInputMsg] = useState<string>("");
   return (
     <form
-      onSubmit={handleMessageSubmit}
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSend(userInputMsg);
+      }}
       className="mt-4 border-t border-slate-800 pt-4 flex gap-2"
     >
       <input
@@ -22,6 +20,7 @@ export default function ChatForm({ subjectId }: { subjectId: string }) {
         type="text"
         placeholder="メッセージを入力..."
         className="w-full rounded-md bg-slate-900 border border-slate-700 p-3 text-sm text-slate-200 focus:outline-none"
+        onChange={(e) => setUserInputMsg(e.target.value)}
       />
       <button
         type="submit"

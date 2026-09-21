@@ -1,32 +1,44 @@
-import { getNote } from "@/lib/supabase/queries/notes";
-import ChatFrom from "./_components/ChatForm";
-import StudyNoteArea from "./_components/StudyNoteArea";
-import AISummary from "./_components/AISummaryArea";
-import ChatLogs from "./_components/ChatLogArea";
+//import { getNote } from "@/lib/supabase/queries/notes";
 
+import { createClient } from "@/lib/supabase/server";
+import { getSubjects, getSubjectName } from "@/lib/supabase/queries/subjects";
+import { getChat } from "@/lib/supabase/queries/chat";
+import { getSummary } from "@/lib/supabase/queries/summary";
+import { SubjectDetailClient } from "./_components/SubjectDetailClient";
+import { getExamProblems } from "@/lib/supabase/queries/examProblems";
+import { redirect } from "next/navigation";
 export default async function ChatPage({
   params,
 }: {
-  params: Promise<{ subjectId: string }>;
+  params: { subjectId: string };
 }) {
   const { subjectId } = await params;
-  const note = await getNote(subjectId);
-  return (
-    <div className="flex h-full w-full overflow-hidden bg-slate-950 text-slate-100">
-      {/* メイン：チャットエリア */}
-      <main className="flex flex-1 flex-col justify-between border-r border-slate-800 p-6">
-        {note && <ChatLogs logs={note} />}
-        <ChatFrom subjectId={subjectId} />
-      </main>
+  const subjectName = await getSubjectName(subjectId);
+  const subjects = await getSubjects();
+  const studyChatLogs = await getChat(subjectId, 10, "study");
+  const aiSummary = await getSummary(subjectId);
+  const examProblems = await getExamProblems(subjectId);
 
-      {/* 右側：学習メモ ＆ AI要約パネル */}
-      <aside className="w-80 flex flex-col gap-6 p-6 bg-slate-900/40">
-        <StudyNoteArea
-          subjectId={subjectId}
-          initialNote={note?.study_note || ""}
-        />
-        <AISummary initialAISummary={note?.ai_summary || ""} />
-      </aside>
-    </div>
+  console.log("科目", subjectName);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  return (
+    <SubjectDetailClient
+      user={user}
+      subjectId={subjectId}
+      subjects={subjects}
+      subjectName={subjectName}
+      studyChatlogs={studyChatLogs}
+      aiSummary={typeof aiSummary === "string" ? aiSummary : ""}
+      problems={examProblems}
+    />
   );
 }

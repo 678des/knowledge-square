@@ -13,7 +13,7 @@ export async function createSubjectAction(subjectName: string) {
 
   // DB に新規作成
   const { data, error } = await supabase
-    .from("subjects")
+    .from("subjects_new")
     .insert({
       user_id: user.id,
       name: subjectName, // 入力された科目名
