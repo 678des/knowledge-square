@@ -1,21 +1,11 @@
 "use client";
 
-//import React from "react";
-//import { SendMessage } from "@/app/subjects/c/[subjectId]/actions/chat";
 import { useState } from "react";
 export default function ChatForm({
   handleSend,
 }: {
   handleSend: (message: string) => void;
 }) {
-  // async function handleMessageSubmit(event: React.FormEvent<HTMLFormElement>) {
-  //   event.preventDefault();
-  //   const formData = new FormData(event.currentTarget);
-  //   const message = formData.get("message") as string;
-  //   console.log("送信されたメッセージ:", message, "subjectId:", subjectId);
-  //   await SendMessage(subjectId, message, "study");
-  // }
-
   const [userInputMsg, setUserInputMsg] = useState<string>("");
   return (
     <form

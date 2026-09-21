@@ -1,20 +1,7 @@
 import { createClient } from "../server"; // プロジェクトのSupabaseクライアントのパスに合わせて調整してください
 
 // データの型定義（先ほど作ったコンポーネントで使える形に合わせます）
-export type Attempt = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  created_at: string;
-};
-
-export type ExamProblem = {
-  id: string;
-  room_id: string;
-  question_content: string;
-  created_at: string;
-  exam_attempts: Attempt[];
-};
+import type { ExamProblem } from "@/lib/types";
 
 /**
  * 指定したチャットルーム（科目）に紐づく試験問題と、その回答履歴をすべて取得する
@@ -72,15 +59,5 @@ export async function getExamProblems(
     console.error("試験問題の取得に失敗しました:", error.message);
     throw new Error("試験問題の取得に失敗しました。");
   }
-
-  // 各問題に紐づく attempt も作成日時の古い順（上から下にチャットが流れる順）にソートしておく
-  //   const formattedData: ExamProblem[] = (data || []).map((problem) => ({
-  //     ...problem,
-  //     exam_attempts: (problem.exam_attempts || []).sort(
-  //       (a, b) =>
-  //         new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-  //     ),
-  //   }));
-
   return data;
 }

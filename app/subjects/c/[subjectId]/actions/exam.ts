@@ -2,8 +2,6 @@
 
 import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@/lib/supabase/server";
-import { sub } from "framer-motion/client";
-
 export async function Exam(
   userAnswer: string,
   subjectId: string,
@@ -33,7 +31,7 @@ export async function Exam(
   //const room_id = "8b7a5e8a-54a7-49b5-87da-7b5af850d8cf";
   console.log("roomid", room_id);
 
-  const { data: exam_problem, error: er } = await supabase
+  const { data: exam_problem } = await supabase
     .from("exam_problems")
     .select("question_content")
     .eq("id", probremId)
@@ -93,7 +91,7 @@ ${problem}
 
   console.log("Geminiに渡すもの", geminiContents);
 
-  let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   const response = await ai.models.generateContent({
     model: "gemini-3.5-flash-lite",

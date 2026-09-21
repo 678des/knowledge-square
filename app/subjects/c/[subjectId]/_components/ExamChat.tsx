@@ -2,8 +2,6 @@
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
-import { useState } from "react";
-
 type Attempt = {
   id: string;
   role: "user" | "assistant";
@@ -32,9 +30,6 @@ export default function ExamProblemDetail({
   }
 
   const attempts = problem.exam_attempts || [];
-  const lastAssistantAttempt = [...attempts]
-    .reverse()
-    .find((a) => a.role === "assistant");
 
   return (
     <div className="flex-1 flex flex-col h-full  p-6 space-y-6">

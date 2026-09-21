@@ -6,6 +6,7 @@ import { getChat } from "@/lib/supabase/queries/chat";
 import { getSummary } from "@/lib/supabase/queries/summary";
 import { SubjectDetailClient } from "./_components/SubjectDetailClient";
 import { getExamProblems } from "@/lib/supabase/queries/examProblems";
+import { redirect } from "next/navigation";
 export default async function ChatPage({
   params,
 }: {
@@ -15,22 +16,20 @@ export default async function ChatPage({
   const subjectName = await getSubjectName(subjectId);
   const subjects = await getSubjects();
   const studyChatLogs = await getChat(subjectId, 10, "study");
-  const interViewChatLogs = await getChat(subjectId, 10, "review");
   const aiSummary = await getSummary(subjectId);
   const examProblems = await getExamProblems(subjectId);
 
   console.log("科目", subjectName);
-  console.log(
-    "interViewChatLogs",
-    interViewChatLogs,
-    "studyChatLogs",
-    studyChatLogs,
-  );
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   return (
     <SubjectDetailClient
       user={user}
@@ -38,7 +37,6 @@ export default async function ChatPage({
       subjects={subjects}
       subjectName={subjectName}
       studyChatlogs={studyChatLogs}
-      interviewChatLogs={interViewChatLogs}
       aiSummary={typeof aiSummary === "string" ? aiSummary : ""}
       problems={examProblems}
     />

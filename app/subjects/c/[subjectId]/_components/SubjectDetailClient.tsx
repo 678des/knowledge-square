@@ -1,4 +1,3 @@
-// app/subjects/c/[subjectId]/_components/SubjectDetailClient.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,18 +8,19 @@ import { Inter, Lora } from "next/font/google";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ChatLogs from "./ChatLogArea";
-import PracticeExamView from "./PracticeExamModeView";
 import { Subject } from "@/lib/types";
 import AIReplyButton from "./AIReplyButton";
-import StudyNoteArea from "./StudyNoteArea";
-import AISummary from "./AISummaryArea";
+//import StudyNoteArea from "./StudyNoteArea";
+//import AISummary from "./AISummaryArea";
 export type ModeType = "study" | "review";
-import { SendMessageResult } from "../actions/chat";
-import { PracticeExam, SendExamMessage } from "../actions/practice";
+import { PracticeExam } from "../actions/practice";
 import ExamProblemSidebar from "./ExamProblemList";
 import ExamProblemDetail from "./ExamChat";
 import { Exam } from "../actions/exam";
-import { div } from "framer-motion/client";
+import { User } from "@supabase/supabase-js";
+
+import type { Message, ExamProblem } from "../../../../../lib/types";
+
 export const inter = Inter({
   subsets: ["latin"],
   display: "swap",
@@ -36,7 +36,6 @@ export function SubjectDetailClient({
   subjectName,
   subjectId,
   studyChatlogs,
-  interviewChatLogs,
   problems,
   user,
   aiSummary,
@@ -44,40 +43,38 @@ export function SubjectDetailClient({
   subjects: Subject[];
   subjectName: string;
   subjectId: string;
-  studyChatlogs: any;
-  interviewChatLogs: any;
-  problems: any;
-  user: any;
+  studyChatlogs: Message[];
+  problems: ExamProblem[];
+  user: User;
   aiSummary: string;
 }) {
   const [activeMode, setActiveMode] = useState<ModeType>("study");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [normalChatLogs, setNormalChatLogs] = useState<any>();
-  const [examProblems, setExamProblems] = useState<any>();
+  const [normalChatLogs, setNormalChatLogs] = useState<Message[]>(
+    studyChatlogs || [],
+  );
+  //const [examProblems, setExamProblems] = useState<ExamProblem[]>(problems);
+  const examProblems = problems;
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(
     problems[1]?.id || "",
   );
 
-  const [summary, setSummary] = useState<string>();
+  //const [summary, setSummary] = useState<string>(aiSummary);
+
+  console.log(aiSummary);
 
   const selectedProblem =
     problems.find((p: { id: string | null }) => p.id === selectedProblemId) ||
     null;
 
-  useEffect(() => {
-    setNormalChatLogs(studyChatlogs);
-    // setPracticeChatLogs(interviewChatLogs);
-    setExamProblems(problems);
-    setSummary(aiSummary);
-  }, [subjectId]);
+  useEffect(() => {}, [subjectId]);
 
   async function execPractice() {
     setActiveMode("review");
-    const res = await PracticeExam(subjectId);
-    //setPracticeChatLogs((prev: any) => [...prev, res.aiResponceObj]);
+    await PracticeExam(subjectId);
   }
   async function handleSend(message: string) {
-    setNormalChatLogs((prev: any) => [
+    setNormalChatLogs((prev) => [
       ...prev,
       {
         id: crypto.randomUUID(),
@@ -87,7 +84,15 @@ export function SubjectDetailClient({
       },
     ]);
     const res = await SendMessage(subjectId, message, activeMode);
-    setNormalChatLogs((prev: any) => [...prev, res?.aiResponceObj]);
+    setNormalChatLogs((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: res?.aiResponceObj.content || "",
+        created_at: "",
+      },
+    ]);
   }
 
   async function handleAnswer(message: string) {
@@ -95,7 +100,6 @@ export function SubjectDetailClient({
       await Exam(message, subjectId, selectedProblemId);
     }
   }
-  //console.log("現在の buttonsbool の値:", buttonsbool);
   return (
     // ① h-screen で画面全体を固定し、スクロールをアプリ内部に閉じる
     <div

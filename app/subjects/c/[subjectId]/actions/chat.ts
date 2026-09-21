@@ -1,10 +1,8 @@
 "use server";
 
 import { GoogleGenAI } from "@google/genai";
-import { Message } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 import { after } from "next/server";
-import * as z from "zod";
 
 export type SendMessageResult = {
   success: true;
@@ -59,7 +57,7 @@ export async function SendMessage(
     .single();
 
   //科目名を取得
-  let subject_name = (subject as { name: string } | null)?.name || "";
+  const subject_name = (subject as { name: string } | null)?.name || "";
 
   //現在のルームを取得
   const room_id = (room as { id: string } | null)?.id || "";
@@ -115,11 +113,11 @@ export async function SendMessage(
   //現在のユーザーの書いているキーワードは、以下の項目です。{study_noteの変数「アーキテクチャ、○○の原則、○○定理、セキュリティ」}
   //必要に応じてこれらの項目とユーザーの発言から、現在何をユーザーに教えるべきかを判断してください。
 
-  const userMsgObj: Message = {
-    id: crypto.randomUUID(),
-    role: "user",
-    content: userMessage,
-  };
+  // const userMsgObj: Message = {
+  //   id: crypto.randomUUID(),
+  //   role: "user",
+  //   content: userMessage,
+  // };
 
   const geminiContents = [
     // ② 過去ログ
@@ -149,7 +147,7 @@ export async function SendMessage(
       temperature: 0.7,
     },
   });
-  const { data, error } = await supabase.from("messages_new").insert({
+  await supabase.from("messages_new").insert({
     room_id: room_id,
     role: "user",
     content: userMessage,

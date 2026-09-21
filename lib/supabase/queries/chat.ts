@@ -1,6 +1,11 @@
+import { Message } from "@/lib/types";
 import { createClient } from "../server";
 
-export async function getChat(subjectId: string, count: number, mode: string) {
+export async function getChat(
+  subjectId: string,
+  count: number,
+  mode: string,
+): Promise<Message[]> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -8,7 +13,7 @@ export async function getChat(subjectId: string, count: number, mode: string) {
   } = await supabase.auth.getUser();
   if (userError || !user) {
     console.error("ユーザー情報の取得に失敗しました:", userError);
-    return null;
+    return [];
   }
 
   const { data: room } = await supabase

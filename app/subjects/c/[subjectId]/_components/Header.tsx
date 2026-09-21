@@ -4,7 +4,6 @@ import { Menu } from "lucide-react";
 import Avator from "@/app/_components/Avator";
 import { LoginButton } from "@/app/_components/LoginButton";
 import { User } from "@supabase/supabase-js";
-import { useState } from "react";
 import type { ModeType } from "./SubjectDetailClient";
 
 type HeaderProps = {

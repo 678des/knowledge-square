@@ -41,7 +41,7 @@ export async function PracticeExam(subjectId: string) {
     .single();
 
   //科目名を取得
-  let subject_name = (subject as { name: string } | null)?.name || "";
+  const subject_name = (subject as { name: string } | null)?.name || "";
 
   //現在のルームを取得
   const room_id = (room as { id: string } | null)?.id || "";
@@ -108,7 +108,7 @@ export async function PracticeExam(subjectId: string) {
 
   console.log("Geminiに渡すもの", geminiContents);
 
-  let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   const response = await ai.models.generateContent({
     model: "gemini-3.5-flash-lite",
@@ -190,7 +190,7 @@ export async function SendExamMessage(
     .eq("subject_id", subjectId)
     .single();
 
-  let subject_name = (subject as { name: string } | null)?.name || "";
+  const subject_name = (subject as { name: string } | null)?.name || "";
   const room_id = (room as { id: string } | null)?.id || "";
   const ai_summary =
     (study_note as { ai_summary: string } | null)?.ai_summary || "";
@@ -251,7 +251,7 @@ export async function SendExamMessage(
     },
   ];
 
-  let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   const response = await ai.models.generateContent({
     model: "gemini-3.5-flash-lite",

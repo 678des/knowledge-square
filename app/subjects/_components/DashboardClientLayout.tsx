@@ -20,8 +20,6 @@ export const lora = Lora({
 export default function DashboardClientLayout({
   children,
   subjects,
-  currentSubject,
-  user,
 }: {
   children: ReactNode;
   subjects: Subject[];
