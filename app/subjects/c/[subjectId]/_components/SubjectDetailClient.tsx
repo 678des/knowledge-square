@@ -53,8 +53,8 @@ export function SubjectDetailClient({
   const [normalChatLogs, setNormalChatLogs] = useState<Message[]>(
     studyChatlogs || [],
   );
-  //const [examProblems, setExamProblems] = useState<ExamProblem[]>(problems);
-  const examProblems = problems;
+  const [examProblems, setExamProblems] = useState<ExamProblem[]>(problems);
+  // const examProblems = problems;
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(
     problems[1]?.id || "",
   );
@@ -64,14 +64,23 @@ export function SubjectDetailClient({
   console.log(aiSummary);
 
   const selectedProblem =
-    problems.find((p: { id: string | null }) => p.id === selectedProblemId) ||
-    null;
-
-  useEffect(() => {}, [subjectId]);
+    examProblems.find((p) => p.id === selectedProblemId) || null;
 
   async function execPractice() {
     setActiveMode("review");
-    await PracticeExam(subjectId);
+    //TODO
+
+    const res = await PracticeExam(subjectId);
+    const newProblem = {
+      id: crypto.randomUUID(),
+      room_id: "",
+      question_content: res.aiResponceObj.content,
+      created_at: "",
+      exam_attempts: [],
+    };
+
+    setExamProblems((prev) => [...prev, newProblem]);
+    setSelectedProblemId(newProblem.id);
   }
   async function handleSend(message: string) {
     setNormalChatLogs((prev) => [
@@ -96,9 +105,48 @@ export function SubjectDetailClient({
   }
 
   async function handleAnswer(message: string) {
-    if (selectedProblemId) {
-      await Exam(message, subjectId, selectedProblemId);
-    }
+    const newAttempt = {
+      id: crypto.randomUUID(),
+      role: "user" as const,
+      content: message,
+      created_at: "",
+    };
+
+    setExamProblems((prevProblems) =>
+      prevProblems.map((problem) => {
+        if (problem.id === selectedProblemId) {
+          return {
+            ...problem,
+            // null/undefined 対策（オプショナルチェーンまたは空配列のフォールバック）をつけておくとより安全です
+            exam_attempts: [...(problem.exam_attempts ?? []), newAttempt],
+          };
+        }
+        return problem;
+      }),
+    );
+
+    if (!selectedProblemId) return;
+    const res = await Exam(message, subjectId, selectedProblemId);
+
+    const newAIAttempt = {
+      id: crypto.randomUUID(),
+      role: "assistant" as const,
+      content: res.aiResponceObj.content,
+      created_at: "",
+    };
+
+    setExamProblems((prevProblems) =>
+      prevProblems.map((problem) => {
+        if (problem.id === selectedProblemId) {
+          return {
+            ...problem,
+            // null/undefined 対策（オプショナルチェーンまたは空配列のフォールバック）をつけておくとより安全です
+            exam_attempts: [...(problem.exam_attempts ?? []), newAIAttempt],
+          };
+        }
+        return problem;
+      }),
+    );
   }
   return (
     // ① h-screen で画面全体を固定し、スクロールをアプリ内部に閉じる
@@ -127,7 +175,7 @@ export function SubjectDetailClient({
           <aside className="hidden lg:flex w-80 flex-col gap-6 p-6 border-l border-slate-800 bg-slate-900/40 overflow-y-auto">
             <ExamProblemSidebar
               problems={examProblems}
-              selectedProblemId={""}
+              selectedProblemId={selectedProblemId}
               onSelectProblem={setSelectedProblemId}
             />
           </aside>
