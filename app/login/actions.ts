@@ -24,7 +24,7 @@ export async function signIn(
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect("/subjects");
 }
 
 export async function signUp(
@@ -46,8 +46,8 @@ export async function signUp(
   }
 
   // メール確認が有効な設定の場合はここでユーザーに案内する
-  revalidatePath("/", "layout");
-  redirect("/cards");
+  //revalidatePath("/", "layout");
+  redirect("/");
 }
 
 export async function signInWithGitHub() {
