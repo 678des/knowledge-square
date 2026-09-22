@@ -10,8 +10,8 @@ import Header from "./Header";
 import ChatLogs from "./ChatLogArea";
 import { Subject } from "@/lib/types";
 import AIReplyButton from "./AIReplyButton";
-//import StudyNoteArea from "./StudyNoteArea";
-//import AISummary from "./AISummaryArea";
+import StudyNoteArea from "./StudyNoteArea";
+import AISummary from "./AISummaryArea";
 export type ModeType = "study" | "review";
 import { PracticeExam } from "../actions/practice";
 import ExamProblemSidebar from "./ExamProblemList";
@@ -50,6 +50,7 @@ export function SubjectDetailClient({
 }) {
   const [activeMode, setActiveMode] = useState<ModeType>("study");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isStudyMemoOpen, setIsStudyMemoOpen] = useState(false);
   const [normalChatLogs, setNormalChatLogs] = useState<Message[]>(
     studyChatlogs || [],
   );
@@ -161,6 +162,7 @@ export function SubjectDetailClient({
           onChangeMode={setActiveMode}
           subjectName={subjectName}
           onToggleSidebar={() => setSidebarOpen(true)} // 必要に応じてハンバーガー開閉用関数を渡す
+          onToggleStudyMemo={() => setIsStudyMemoOpen((prev) => !prev)}
         />
       )}
 
@@ -207,7 +209,15 @@ export function SubjectDetailClient({
           </div>
         </main>
 
-        {/* 右側：学習メモ ＆ AI要約パネル（復活させる場合） */}
+        {/* 右側：学習メモ ＆ AI要約パネル */}
+        {activeMode == "study" && isStudyMemoOpen && (
+          <aside className="w-80 flex-col border-l border-slate-800 bg-slate-900/40 flex shrink-0 overflow-y-auto p-6 space-y-4">
+            <div className="space-y-4 text-xs text-slate-300">
+              {/* ここにAISummaryや学習メモコンポーネントを配置 */}
+              <AISummary initialAISummary={aiSummary || ""} />
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );
