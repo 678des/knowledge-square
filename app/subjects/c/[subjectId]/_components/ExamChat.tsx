@@ -2,6 +2,8 @@
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
+
+import { useRef, useEffect } from "react";
 type Attempt = {
   id: string;
   role: "user" | "assistant";
@@ -28,8 +30,13 @@ export default function ExamProblemDetail({
       </div>
     );
   }
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   const attempts = problem.exam_attempts || [];
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [problem]);
 
   return (
     <div className="flex-1 flex flex-col h-full  p-6 space-y-6">
@@ -83,6 +90,8 @@ export default function ExamProblemDetail({
               </div>
             ))
           )}
+          {/* スクロール終点 */}
+          <div ref={bottomRef} />
         </div>
       </div>
     </div>
