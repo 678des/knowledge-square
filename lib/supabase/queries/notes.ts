@@ -18,16 +18,16 @@ export async function getNote(subjectId: string) {
 
   const { data, error } = await supabase
     .from("study_notes_new")
-    .select("*")
-    .eq("user_id", user.id)
+    .select("study_memo")
     .eq("subject_id", subjectId)
-    .maybeSingle();
+    .single();
 
   if (error) {
     console.error("ノートの取得に失敗しました:", error.message);
     return null;
   }
 
-  console.log("取得したノート:", data, "ユーザー:", user.id);
-  //return data as Chatlogs | null;
+  const note = data as { study_memo: string | null } | null;
+  console.log("取得したノート:", note?.study_memo, "ユーザー:", user.id);
+  return note?.study_memo;
 }

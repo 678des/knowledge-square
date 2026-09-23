@@ -39,6 +39,7 @@ export function SubjectDetailClient({
   problems,
   user,
   aiSummary,
+  studyNote,
 }: {
   subjects: Subject[];
   subjectName: string;
@@ -47,6 +48,7 @@ export function SubjectDetailClient({
   problems: ExamProblem[];
   user: User;
   aiSummary: string;
+  studyNote: string;
 }) {
   const [activeMode, setActiveMode] = useState<ModeType>("study");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -215,6 +217,7 @@ export function SubjectDetailClient({
             <div className="space-y-4 text-xs text-slate-300">
               {/* ここにAISummaryや学習メモコンポーネントを配置 */}
               <AISummary initialAISummary={aiSummary || ""} />
+              <StudyNoteArea subjectId={subjectId} initialNote={studyNote} />
             </div>
           </aside>
         )}

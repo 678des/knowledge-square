@@ -34,6 +34,10 @@ CREATE TABLE study_notes_new(
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE study_notes_new 
+ADD COLUMN study_memo TEXT;
+
+
 CREATE TABLE exam_problems(
    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
    room_id UUID NOT NULL REFERENCES chat_rooms_new(id) ON DELETE CASCADE,
