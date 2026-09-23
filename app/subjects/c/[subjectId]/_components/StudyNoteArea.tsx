@@ -45,8 +45,8 @@ export default function StudyNoteArea({
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="ここに復習メモを入力..."
-        className="w-full h-44 rounded-md bg-slate-950 border border-slate-800 p-3 text-sm text-slate-200 resize-none focus:outline-none"
+        placeholder="覚えたい単語や内容を入力"
+        className="w-full rounded-md bg-slate-950 border border-slate-800 p-3 text-sm text-slate-200 focus:outline-none"
       />
     </div>
   );

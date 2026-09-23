@@ -176,7 +176,7 @@ export function SubjectDetailClient({
         />
 
         {examProblems && activeMode == "review" && (
-          <aside className="hidden lg:flex w-80 flex-col gap-6 p-6 border-l border-slate-800 bg-slate-900/40 overflow-y-auto">
+          <aside className="hidden lg:flex w-60 flex-col gap-6 p-6 border-l border-slate-800 bg-slate-900/40 overflow-y-auto">
             <ExamProblemSidebar
               problems={examProblems}
               selectedProblemId={selectedProblemId}
@@ -196,7 +196,6 @@ export function SubjectDetailClient({
             {normalChatLogs && activeMode == "study" && (
               <div>
                 <ChatLogs logs={normalChatLogs} />
-                <AIReplyButton setReviewMode={execPractice} />
               </div>
             )}
 
@@ -213,11 +212,12 @@ export function SubjectDetailClient({
 
         {/* 右側：学習メモ ＆ AI要約パネル */}
         {activeMode == "study" && isStudyMemoOpen && (
-          <aside className="w-80 flex-col border-l border-slate-800 bg-slate-900/40 flex shrink-0 overflow-y-auto p-6 space-y-4">
+          <aside className="w-60 flex-col border-l border-slate-800 bg-slate-900/40 flex shrink-0 overflow-y-auto p-6 space-y-4">
             <div className="space-y-4 text-xs text-slate-300">
               {/* ここにAISummaryや学習メモコンポーネントを配置 */}
               <AISummary initialAISummary={aiSummary || ""} />
               <StudyNoteArea subjectId={subjectId} initialNote={studyNote} />
+              <AIReplyButton setReviewMode={execPractice} />
             </div>
           </aside>
         )}

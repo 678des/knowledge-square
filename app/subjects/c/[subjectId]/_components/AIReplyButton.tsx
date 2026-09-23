@@ -5,10 +5,10 @@ export default function AIReplyButton({
 }) {
   return (
     <button
-      className="px-4 py-2 bg-blue-600 text-white rounded"
+      className="w-full rounded-md bg-blue-800 hover:bg-blue-700 text-white py-2 px-4 focus:outline-none shrink-0"
       onClick={setReviewMode}
     >
-      模擬問題
+      これまでの会話から問題を作成する
     </button>
   );
 }
