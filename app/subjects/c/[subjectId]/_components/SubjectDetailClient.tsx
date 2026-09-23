@@ -200,7 +200,7 @@ export function SubjectDetailClient({
             )}
 
             {/* 右側：メインエリア（問題の詳細・やり取り・フォーム） */}
-            {activeMode == "review" && (
+            {activeMode == "review" && selectedProblem && (
               <ExamProblemDetail problem={selectedProblem} />
             )}
           </div>

@@ -23,7 +23,7 @@ export default function ExamProblemDetail({
 }: {
   problem: Problem | null;
 }) {
-  if (!problem) {
+  if (!problem || problem == null) {
     return (
       <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">
         左側のリストから問題を選択してください。
