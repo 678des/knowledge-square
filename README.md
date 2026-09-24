@@ -1,4 +1,5 @@
-# my study app
+# socrates-ai-learning
+
 
 > **単なる暗記で終わらせず、本質的な理解を深めるためのAI対話型学習ワークフローアプリ**
 
