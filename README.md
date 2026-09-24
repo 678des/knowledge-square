@@ -1,108 +1,43 @@
-# 知識を増幅させるためのアプリ(MVP)
+# my study app
 
-Next.js (App Router) + Supabase (Auth / Postgres) + Tailwind CSS で構築する
-個人学習アプリのMVPです。
+> **単なる暗記で終わらせず、本質的な理解を深めるためのAI対話型学習ワークフローアプリ**
 
-## 1. ディレクトリ構造
+---
 
-```
-.
-├── app/
-│   ├── login/
-│   │   ├── page.tsx          # ログイン/新規登録画面 (Client Component)
-│   │   └── actions.ts        # signIn / signUp / signInWithGitHub / signOut (Server Actions)
-│   ├── auth/
-│   │   └── callback/
-│   │       └── route.ts      # GitHub OAuthコールバック (Route Handler)
-│   ├── cards/
-│   │   ├── page.tsx          # 一覧・検索・タグ絞込み (Server Component)
-│   │   ├── actions.ts        # createCard / deleteCard (Server Actions)
-│   │   ├── CardList.tsx      # 一覧表示コンポーネント
-│   │   ├── [id]/
-│   │   │   └── page.tsx      # 詳細表示 (Server Component)
-│   │   └── new/
-│   │       └── page.tsx      # 新規作成フォーム (Client Component)
-│   ├── layout.tsx            # ルートレイアウト (要追加: Tailwind読込等)
-│   └── page.tsx              # トップ ("/cards" へリダイレクト等、要追加)
-├── lib/
-│   └── supabase/
-│       ├── client.ts         # ブラウザ用Supabaseクライアント
-│       ├── server.ts         # Server Component/Action用Supabaseクライアント
-│       └── middleware.ts     # セッションリフレッシュ + ルート保護ロジック
-├── types/
-│   └── database.types.ts     # DBの型定義 (将来 `supabase gen types` で自動生成に置換)
-├── supabase/
-│   └── schema.sql            # テーブル定義 + RLSポリシー
-├── middleware.ts              # Next.js Middlewareエントリポイント
-└── .env.local.example
-```
+## 💡 開発背景と解決したい課題
 
-将来の拡張(AIアシスタント / ベクトル検索 / 外部通知)は、それぞれ
-`app/api/ai/`, `app/api/search/`, `app/api/notifications/` のような
-Route Handler群として追加していく想定で、`knowledge_cards` テーブルには
-`embedding` / `ai_summary` カラムを、DBには `notification_settings`
-テーブルを今回のスキーマに先行して用意してあります。
+### 開発背景
+大学の授業や専門知識の学習において、内容の難しさから「テスト前に丸暗記して単位だけ取る」状態に陥りがちでした。単位は取れても知識が定着せず、真の理解を得られないことに強い問題意識を感じていました。
 
-## 2. セットアップ手順
+また、解決のために一般的なAIチャット（GeminiやChatGPT等）を利用していましたが、**チャット履歴の管理がしづらく、学習メモや過去の会話を踏まえた復習・問題演習への接続がスムーズに行えない**という課題がありました。
 
-### 2-1. プロジェクト作成 & 依存パッケージ
+### 解決策
+汎用的なAIチャットに頼るのではなく、**「科目ごとの整理 ➔ 会話による深掘り ➔ 自動要約・メモ化 ➔ 理解度テスト・自動評価」**という一連の学習サイクルをワンストップで回せる専用Webアプリを構築しました。
 
-```bash
-npx create-next-app@latest knowledge-app --typescript --tailwind --app
-cd knowledge-app
-npm install @supabase/ssr @supabase/supabase-js
-```
+---
 
-<!-- その後、本回答で出力したファイル群を同名のパスに配置してください
-(`app/`, `lib/`, `types/`, `supabase/`, `middleware.ts`, `.env.local.example`)。 -->
+## ✨ 主な機能
 
-### 2-2. Supabaseプロジェクトの準備
+- **ユーザー認証・プロファイル管理:** ログイン・会員登録機能（Supabase Auth）
+- **科目（Subject）管理:** 学習したいテーマや大学の科目ごとにルームを整理・色分け管理
+- **対話型学習ルーム (Gemini API):** 疑問点を掘り下げて「本質的理解」を促すAIチャット機能
+- **会話の自動要約 & 学習メモ作成:** AIによる対話内容の要約と、ユーザー自身が書き込める学習のメモ
+- **理解度確認テスト自動生成:** これまでの学習メモや会話履歴を踏まえた長文問題をAIが自動作成
+- **AI解答評価システム:** ユーザーの記述式解答に対し、AIが概念を正しく理解できているかを厳密に判定・合格判定を出力
 
-1. https://supabase.com でプロジェクトを新規作成
-2. Project Settings > API から `Project URL` と `anon public key` を取得
-3. SQL Editor を開き、`supabase/schema.sql` の内容を貼り付けて実行
-   - `knowledge_cards`, `profiles`, `notification_settings` テーブルとRLSポリシーが作成されます
-4. (GitHubログインを使う場合) Authentication > Providers > GitHub を有効化し、
-   GitHub側でOAuth Appを作成してClient ID/Secretを設定
-   - Callback URLには `https://<your-project>.supabase.co/auth/v1/callback` を設定
+---
 
-### 2-3. 環境変数
+## 🏗 システム構成図 / アーキテクチャ
 
-`.env.local.example` を `.env.local` にコピーし、値を埋めてください。
+```mermaid
+graph TD
+    User[ユーザー / ブラウザ]
+    Vercel[Vercel / Next.js App Router]
+    SupabaseAuth[Supabase Auth / 認証]
+    SupabaseDB[(Supabase PostgreSQL / DB)]
+    Gemini[Gemini API / LLM]
 
-```bash
-cp .env.local.example .env.local
-```
-
-### 2-4. ローカル起動
-
-```bash
-npm run dev
-```
-
-`http://localhost:3000/login` からユーザー登録 → `/cards` でCRUD確認
-
-## 3. Vercelへのデプロイ
-
-1. GitHubリポジトリにpush
-2. https://vercel.com で「Add New Project」→ 対象リポジトリをImport
-3. Environment Variablesに `.env.local` と同じ内容 (`NEXT_PUBLIC_SUPABASE_URL`,
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY` など) を登録
-4. GitHubログインを使う場合、SupabaseのRedirect URLsに本番URL
-   (`https://<your-app>.vercel.app/auth/callback`) を追加登録
-5. Deployを実行
-
-## 4. 今後の拡張ロードマップとの接続ポイント
-
-| 機能                                 | 接続ポイント                                                                                                         |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| AIによる自動レビュー・補足アドバイス | `knowledge_cards.ai_summary` に生成結果を保存。`createCard` 実行後に非同期でAI APIを呼ぶ Route Handler を追加        |
-| ベクトル検索・RAG                    | `knowledge_cards.embedding` (pgvector) に保存し、`supabase/schema.sql` 内のivfflatインデックスをデータ投入後に有効化 |
-| LINE/Discord通知                     | 既に用意済みの `notification_settings` テーブルを使い、Vercel Cron等で定期実行するRoute Handlerを追加                |
-
-## 5. 未実装・要検討事項 (MVPのスコープ外)
-
-- `app/layout.tsx` / `app/page.tsx` はプロジェクト作成時の初期ファイルをベースに、
-  Tailwindのグローバルスタイル読込とトップページのリダイレクトを追加してください
-- Markdownの本文表示は現状プレーンテキスト表示です。`react-markdown` 等の導入を推奨します
-- メール確認(Email confirmation)の有効/無効はSupabaseダッシュボードの設定に依存します
+    User -->|アクセス・操作| Vercel
+    Vercel -->|認証リクエスト| SupabaseAuth
+    Vercel -->|学習データ・ログのCRUD| SupabaseDB
+    Vercel -->|対話・要約・問題生成・評価| Gemini
