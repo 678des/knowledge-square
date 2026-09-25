@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ChatFrom from "./ChatForm";
 
 import { SendMessage } from "../actions/chat";
