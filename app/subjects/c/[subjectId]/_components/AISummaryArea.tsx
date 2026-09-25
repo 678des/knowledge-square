@@ -12,7 +12,7 @@ export default function AISummary({
       </div>
       <textarea
         defaultValue={initialAISummary || ""}
-        className="w-full h-44 rounded-md bg-slate-950 border border-slate-800 p-3 text-sm text-slate-200 resize-none focus:outline-none"
+        className="w-full rounded-md bg-slate-950 border border-slate-800 p-3 text-sm text-slate-200  focus:outline-none"
       ></textarea>
     </div>
   );

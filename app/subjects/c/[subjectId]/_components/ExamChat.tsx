@@ -2,6 +2,8 @@
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
+
+import { useRef, useEffect } from "react";
 type Attempt = {
   id: string;
   role: "user" | "assistant";
@@ -21,15 +23,13 @@ export default function ExamProblemDetail({
 }: {
   problem: Problem | null;
 }) {
-  if (!problem) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">
-        左側のリストから問題を選択してください。
-      </div>
-    );
-  }
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const attempts = problem.exam_attempts || [];
+  const attempts = problem?.exam_attempts || [];
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [problem]);
 
   return (
     <div className="flex-1 flex flex-col h-full  p-6 space-y-6">
@@ -40,12 +40,13 @@ export default function ExamProblemDetail({
           <p className="text-xs font-semibold text-slate-400 mb-2">
             【試験問題】
           </p>
+
           <div className="text-sm text-slate-200">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeHighlight]}
             >
-              {problem.question_content}
+              {problem ? problem.question_content : ""}
             </ReactMarkdown>
           </div>
         </div>
@@ -83,6 +84,8 @@ export default function ExamProblemDetail({
               </div>
             ))
           )}
+          {/* スクロール終点 */}
+          <div ref={bottomRef} />
         </div>
       </div>
     </div>

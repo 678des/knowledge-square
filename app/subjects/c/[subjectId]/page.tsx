@@ -7,6 +7,7 @@ import { getSummary } from "@/lib/supabase/queries/summary";
 import { SubjectDetailClient } from "./_components/SubjectDetailClient";
 import { getExamProblems } from "@/lib/supabase/queries/examProblems";
 import { redirect } from "next/navigation";
+import { getNote } from "@/lib/supabase/queries/notes";
 export default async function ChatPage({
   params,
 }: {
@@ -17,6 +18,7 @@ export default async function ChatPage({
   const subjects = await getSubjects();
   const studyChatLogs = await getChat(subjectId, 10, "study");
   const aiSummary = await getSummary(subjectId);
+  const studyNote = await getNote(subjectId);
   const examProblems = await getExamProblems(subjectId);
 
   console.log("科目", subjectName);
@@ -39,6 +41,7 @@ export default async function ChatPage({
       studyChatlogs={studyChatLogs}
       aiSummary={typeof aiSummary === "string" ? aiSummary : ""}
       problems={examProblems}
+      studyNote={studyNote || ""}
     />
   );
 }

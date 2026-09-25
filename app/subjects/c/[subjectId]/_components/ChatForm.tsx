@@ -24,7 +24,7 @@ export default function ChatForm({
       />
       <button
         type="submit"
-        className="rounded-md bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 focus:outline-none shrink-0"
+        className="rounded-md bg-blue-800 hover:bg-blue-700 text-white py-2 px-4 focus:outline-none shrink-0"
       >
         送信
       </button>

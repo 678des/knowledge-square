@@ -59,7 +59,7 @@ export default function ChatLogs({ logs: studyChatlogs }: { logs: Message[] }) {
               key={msg.id}
               className={`max-w-[80%] rounded-lg p-3 text-sm ${
                 msg.role === "user"
-                  ? "ml-auto bg-blue-600 text-white"
+                  ? "ml-auto bg-slate-600 text-white"
                   : "mr-auto bg-slate-800 text-slate-200 border border-slate-700"
               }`}
             >
