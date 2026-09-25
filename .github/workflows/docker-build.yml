@@ -1,0 +1,28 @@
+name: Docker Build CI
+
+# 1. いつ動くか
+on:
+  push:
+    branches: ["main"]
+
+# 2. 何をさせるか
+jobs:
+  build:
+    runs-on: ubuntu-latest # GitHubが用意するきれいなLinux環境
+
+    steps:
+      # ステップA：GitHubから自分のコードをダウンロードする
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ステップB：Dockerビルドの準備（マルチプラットフォーム対応など）
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ステップC：ビルド実行
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false # ビルドがエラーなく通るかテストだけする
+          tags: my-app:latest
